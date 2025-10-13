@@ -4,6 +4,7 @@ import java.util.*;
 public class InfoSystem {
     private static final Scanner sc = new Scanner(System.in);
 
+    //we are temporarily using hash maps to let our code run without implementing databases
     private static final Map<String, Warehouse> warehouses = new HashMap<>();
     private static final Map<String, Drone> drones = new HashMap<>();
     private static final Map<String, Equipment> equipment = new HashMap<>();
@@ -11,6 +12,7 @@ public class InfoSystem {
     private static final Map<String, PurchaseOrder> purchaseOrders = new HashMap<>();
     private static final Map<String, Rating> ratings = new HashMap<>();
 
+//our main menu
     public static void main(String[] args) {
         while (true) {
             System.out.println("\nInfo System Menu:");
@@ -21,9 +23,10 @@ public class InfoSystem {
             System.out.println("5. Purchase Order Information");
             System.out.println("6. Rating and Review Information");
             System.out.println("0. Exit");
-            System.out.print("Enter choice: ");
+            System.out.print("Enter your choice (number 0 - 6): ");
             int choice = getInt();
 
+            //we use switch to handle menu choices
             switch (choice) {
                 case 1 -> warehouseMenu();
                 case 2 -> droneMenu();
@@ -36,12 +39,13 @@ public class InfoSystem {
                     sc.close();
                     return;
                 }
-                default -> System.out.println("Invalid choice. Please try again.");
+                //incase the user inputs something invalid
+                default -> System.out.println("Invalid choice. Please input a valid number 0 - 6.");
             }
         }
     }
 
-
+// make sure again that the input is an integer
     private static int getInt() {
         while (true) {
             try {
@@ -52,6 +56,7 @@ public class InfoSystem {
         }
     }
 
+    //get the input as long as the input is not empty
     private static String getNonEmptyLine(String prompt) {
         while (true) {
             System.out.print(prompt);
@@ -61,7 +66,7 @@ public class InfoSystem {
         }
     }
 
-
+//selects the warehouse information based off of the warehouse id if inputted
     private static void warehouseMenu() {
         String id = getNonEmptyLine("Enter Warehouse ID: ");
         warehouses.putIfAbsent(id, new Warehouse(id));
@@ -69,53 +74,57 @@ public class InfoSystem {
         w.displayMenu();
     }
 
+    //drone menu that takes in the drone serial number
     private static void droneMenu() {
-        String id = getNonEmptyLine("Enter Drone Serial Number: ");
+        String id = getNonEmptyLine("Enter the Drone's Serial Number: ");
         drones.putIfAbsent(id, new Drone(id));
         drones.get(id).displayMenu();
     }
 
+    //our equipment menu that allows user to view equipment by model or serial number
     private static void equipmentMenu() {
-        System.out.println("1. View Equipment by Model");
-        System.out.println("2. View/Edit Equipment by Serial Number");
+        System.out.println("1. View the equipment by model");
+        System.out.println("2. View or edit the equipment by serial number");
         int choice = getInt();
 
         if (choice == 1) {
-            String model = getNonEmptyLine("Enter Model: ");
+            String model = getNonEmptyLine("Enter the model number: ");
             equipment.values().stream()
                     .filter(e -> model.equalsIgnoreCase(e.model))
                     .forEach(e -> System.out.println("Serial: " + e.serial));
         } else if (choice == 2) {
-            String serial = getNonEmptyLine("Enter Equipment Serial Number: ");
+            String serial = getNonEmptyLine("Enter the equipment serial number: ");
             equipment.putIfAbsent(serial, new Equipment(serial));
             equipment.get(serial).displayMenu();
         }
     }
 
+    //customer menu that allows user to add new customer or view/edit existing customer
     private static void customerMenu() {
-        System.out.println("1. Add New Customer");
-        System.out.println("2. View/Edit Customer");
+        System.out.println("1. Add new customer");
+        System.out.println("2. View/edit customer");
         int choice = getInt();
 
         if (choice == 1) {
             Customer c = Customer.createFromInput(sc);
             customers.put(c.phone, c);
-            System.out.println("Customer added.");
+            System.out.println("Customer has been added into the system!");
         } else if (choice == 2) {
-            String phone = getNonEmptyLine("Enter Customer Phone Number: ");
+            String phone = getNonEmptyLine("Enter the customer's phone number: ");
             customers.putIfAbsent(phone, new Customer(phone));
             customers.get(phone).displayMenu();
         }
     }
 
+    
     private static void purchaseOrderMenu() {
-        String id = getNonEmptyLine("Enter Purchase Order Number: ");
+        String id = getNonEmptyLine("Enter the purchase order number: ");
         purchaseOrders.putIfAbsent(id, new PurchaseOrder(id));
         purchaseOrders.get(id).displayMenu();
     }
 
     private static void ratingMenu() {
-        String id = getNonEmptyLine("Enter Rating ID: ");
+        String id = getNonEmptyLine("Enter the rating ID: ");
         ratings.putIfAbsent(id, new Rating(id));
         ratings.get(id).displayMenu();
     }
@@ -132,10 +141,11 @@ public class InfoSystem {
                 System.out.println("1. Storage\n2. Phone\n3. Drone Capacity\n4. Manager\n5. Address\n6. City\n0. Back");
                 int c = getInt();
                 switch (c) {
-                    case 1 -> storage = getNonEmptyLine("Enter Storage: ");
-                    case 2 -> phone = getNonEmptyLine("Enter Phone: ");
-                    case 3 -> capacity = getNonEmptyLine("Enter Drone Capacity: ");
-                    case 4 -> manager = getNonEmptyLine("Enter Manager Name: ");
+                    //someone check to see if the warehouse questions are correct because idk about the first question
+                    case 1 -> storage = getNonEmptyLine("Enter warehouse the drone is being stored: ");
+                    case 2 -> phone = getNonEmptyLine("Enter phone: ");
+                    case 3 -> capacity = getNonEmptyLine("Enter drone capacity: ");
+                    case 4 -> manager = getNonEmptyLine("Enter manager name: ");
                     case 5 -> address = getNonEmptyLine("Enter Address: ");
                     case 6 -> city = getNonEmptyLine("Enter City: ");
                     case 0 -> { return; }
@@ -160,7 +170,7 @@ public class InfoSystem {
         void displayMenu() {
             List<String> keys = new ArrayList<>(attributes.keySet());
             while (true) {
-                System.out.println("\n--- Drone Menu ---");
+                System.out.println("\nDrone Menu:");
                 for (int i = 0; i < keys.size(); i++)
                     System.out.println((i + 1) + ". " + keys.get(i));
                 System.out.println("0. Back");
@@ -181,17 +191,17 @@ public class InfoSystem {
 
         void displayMenu() {
             while (true) {
-                System.out.println("\n--- Equipment Menu ---");
+                System.out.println("\nEquipment Menu:");
                 System.out.println("1. Description\n2. Model\n3. Year\n4. Status\n5. Location\n0. Back");
                 int opt = getInt();
                 switch (opt) {
-                    case 1 -> description = getNonEmptyLine("Enter Description: ");
-                    case 2 -> model = getNonEmptyLine("Enter Model: ");
-                    case 3 -> year = getNonEmptyLine("Enter Year: ");
-                    case 4 -> status = getNonEmptyLine("Enter Status: ");
-                    case 5 -> location = getNonEmptyLine("Enter Location: ");
+                    case 1 -> description = getNonEmptyLine("Enter description: ");
+                    case 2 -> model = getNonEmptyLine("Enter model: ");
+                    case 3 -> year = getNonEmptyLine("Enter year: ");
+                    case 4 -> status = getNonEmptyLine("Enter status: ");
+                    case 5 -> location = getNonEmptyLine("Enter location: ");
                     case 0 -> { return; }
-                    default -> System.out.println("Invalid choice.");
+                    default -> System.out.println("Invalid choice. Please input a valid number 0 - 5.");
                 }
             }
         }
@@ -218,14 +228,14 @@ public class InfoSystem {
                 System.out.println("1. Name\n2. Address\n3. Warehouse Distance\n4. Email\n5. Start Date\n6. Active Status\n0. Back");
                 int opt = getInt();
                 switch (opt) {
-                    case 1 -> name = getNonEmptyLine("Enter Name: ");
-                    case 2 -> address = getNonEmptyLine("Enter Address: ");
-                    case 3 -> warehouseDistance = getNonEmptyLine("Enter Warehouse Distance: ");
-                    case 4 -> email = getNonEmptyLine("Enter Email: ");
-                    case 5 -> startDate = getNonEmptyLine("Enter Start Date: ");
-                    case 6 -> activeStatus = getNonEmptyLine("Enter Active Status: ");
+                    case 1 -> name = getNonEmptyLine("Enter name: ");
+                    case 2 -> address = getNonEmptyLine("Enter address: ");
+                    case 3 -> warehouseDistance = getNonEmptyLine("Enter the warehouse distance: ");
+                    case 4 -> email = getNonEmptyLine("Enter email: ");
+                    case 5 -> startDate = getNonEmptyLine("Enter start date: ");
+                    case 6 -> activeStatus = getNonEmptyLine("Enter active status: ");
                     case 0 -> { return; }
-                    default -> System.out.println("Invalid choice.");
+                    default -> System.out.println("Invalid choice. Please input a valid number 0 - 6.");
                 }
             }
         }
@@ -243,11 +253,11 @@ public class InfoSystem {
                 System.out.println("1. Element Type\n2. Actual Arrival Date\n3. Quantity\n4. Estimated Arrival Date\n5. Value\n0. Back");
                 int opt = getInt();
                 switch (opt) {
-                    case 1 -> type = getNonEmptyLine("Enter Element Type: ");
-                    case 2 -> actualDate = getNonEmptyLine("Enter Actual Arrival Date: ");
-                    case 3 -> quantity = getNonEmptyLine("Enter Quantity: ");
-                    case 4 -> estimateDate = getNonEmptyLine("Enter Estimated Arrival Date: ");
-                    case 5 -> value = getNonEmptyLine("Enter Value: ");
+                    case 1 -> type = getNonEmptyLine("Enter the element type: ");
+                    case 2 -> actualDate = getNonEmptyLine("Enter actual arrival date: ");
+                    case 3 -> quantity = getNonEmptyLine("Enter quantity: ");
+                    case 4 -> estimateDate = getNonEmptyLine("Enter estimated arrival date: ");
+                    case 5 -> value = getNonEmptyLine("Enter value: ");
                     case 0 -> { return; }
                     default -> System.out.println("Invalid choice.");
                 }
@@ -266,10 +276,10 @@ public class InfoSystem {
                 System.out.println("1. Review\n2. Rating\n0. Back");
                 int opt = getInt();
                 switch (opt) {
-                    case 1 -> review = getNonEmptyLine("Enter Review: ");
-                    case 2 -> rating = getNonEmptyLine("Enter Rating (1-5): ");
+                    case 1 -> review = getNonEmptyLine("Enter your review: ");
+                    case 2 -> rating = getNonEmptyLine("Enter your rating (0-5): ");
                     case 0 -> { return; }
-                    default -> System.out.println("Invalid choice.");
+                    default -> System.out.println("Invalid choice. Please input a valid rating.");
                 }
             }
         }
