@@ -43,6 +43,10 @@ class InfoSystem {
             System.out.println("4. Customer/Community Information");
             System.out.println("5. Purchase Order Information");
             System.out.println("6. Rating and Review Information");
+            System.out.println("7. Rent Equipment");
+            System.out.println("8. Return Equipment");
+            System.out.println("9. Schedule Equipment Delivery");
+            System.out.println("10. Schedule Equipment Pickup");
             System.out.println("0. Exit");
             System.out.print("Enter choice: ");
             int choice = getInt();
@@ -54,6 +58,10 @@ class InfoSystem {
                 case 4 -> customerMenu();
                 case 5 -> purchaseOrderMenu();
                 case 6 -> ratingMenu();
+                case 7 -> rentEquipment();
+                case 8 -> returnEquipment();
+                case 9 -> scheduleDelivery();
+                case 10 -> schedulePickup();
                 case 0 -> {
                     System.out.println("Goodbye!");
                     return;
@@ -278,5 +286,67 @@ class InfoSystem {
     // Rating & Review Menu
     private static void ratingMenu() {
         entityMenu("Rating", "Rating ID", ratings, RATING_FIELDS);
+    }
+
+    private static void rentEquipment() {
+        System.out.println("\nRent Equipment");
+        String customerId = getNonEmptyLine("Enter customer ID: ");
+        String equipmentId = getNonEmptyLine("Enter equipment ID: ");
+        String rentalStart = getNonEmptyLine("Enter rental start date (YYYY-MM-DD): ");
+        String expectedReturn = getNonEmptyLine("Enter expected return date (YYYY-MM-DD): ");
+        String pickupMethod = getNonEmptyLine("Enter pickup method (in-person/drone delivery): ");
+
+        System.out.println("\nRental created for customer " + customerId
+                + " and equipment " + equipmentId + ".");
+        System.out.println("Start date: " + rentalStart);
+        System.out.println("Expected return: " + expectedReturn);
+        System.out.println("Pickup method: " + pickupMethod);
+        System.out.println("Equipment rented.");
+    }
+
+    private static void returnEquipment() {
+        System.out.println("\nReturn Equipment");
+        String customerId = getNonEmptyLine("Enter customer ID: ");
+        String equipmentId = getNonEmptyLine("Enter equipment ID: ");
+        String returnDate = getNonEmptyLine("Enter return date (YYYY-MM-DD): ");
+        String condition = getNonEmptyLine("Enter equipment condition on return: ");
+
+        System.out.println("\nReturn recorded for customer " + customerId
+                + " and equipment " + equipmentId + ".");
+        System.out.println("Return date: " + returnDate);
+        System.out.println("Condition: " + condition);
+        System.out.println("Equipment returned.");
+    }
+
+    private static void scheduleDelivery() {
+        System.out.println("\nSchedule Equipment Delivery");
+        String customerId = getNonEmptyLine("Enter customer ID: ");
+        String equipmentId = getNonEmptyLine("Enter equipment ID: ");
+        String deliveryDate = getNonEmptyLine("Enter delivery date (YYYY-MM-DD): ");
+        String deliveryWindow = getNonEmptyLine("Enter delivery time window: ");
+        String droneId = getNonEmptyLine("Enter assigned drone ID: ");
+
+        System.out.println("\nDelivery scheduled for customer " + customerId
+                + " and equipment " + equipmentId + ".");
+        System.out.println("Delivery date: " + deliveryDate);
+        System.out.println("Delivery window: " + deliveryWindow);
+        System.out.println("Assigned drone: " + droneId);
+        System.out.println("Equipment delivery scheduled.");
+    }
+
+    private static void schedulePickup() {
+        System.out.println("\nSchedule Equipment Pickup");
+        String customerId = getNonEmptyLine("Enter customer ID: ");
+        String equipmentId = getNonEmptyLine("Enter equipment ID: ");
+        String pickupDate = getNonEmptyLine("Enter pickup date (YYYY-MM-DD): ");
+        String pickupWindow = getNonEmptyLine("Enter pickup time window: ");
+        String droneId = getNonEmptyLine("Enter assigned drone ID: ");
+
+        System.out.println("\nPickup scheduled for customer " + customerId
+                + " and equipment " + equipmentId + ".");
+        System.out.println("Pickup date: " + pickupDate);
+        System.out.println("Pickup window: " + pickupWindow);
+        System.out.println("Assigned drone: " + droneId);
+        System.out.println("Equipment pickup scheduled.");
     }
 }
