@@ -14,6 +14,26 @@ class InfoSystem {
     private static Map<String, Map<String, String>> purchaseOrders = new HashMap<>();
     private static Map<String, Map<String, String>> ratings = new HashMap<>();
 
+    private static final String[] WAREHOUSE_FIELDS = {
+            "Storage", "Phone number", "Drone capacity", "Manager name", "Address", "City"
+    };
+    private static final String[] DRONE_FIELDS = {
+            "Max speed", "Manufacturer", "Location", "Active status", "Distance autonomy",
+            "Name", "Warranty expiration", "Model", "Year", "Status", "Employee responsible"
+    };
+    private static final String[] EQUIPMENT_FIELDS = {
+            "Description", "Model", "Year", "Status", "Location"
+    };
+    private static final String[] CUSTOMER_FIELDS = {
+            "Name", "Address", "Warehouse distance", "Email", "Start date", "Active moving status"
+    };
+    private static final String[] PURCHASE_ORDER_FIELDS = {
+            "Element type", "Actual arrival date", "Quantity", "Estimated arrival date", "Value"
+    };
+    private static final String[] RATING_FIELDS = {
+            "Review", "Rating"
+    };
+
     public static void main(String[] args) {
         while (true) {
             System.out.println("\nHello, what would you like to look at today?");
@@ -54,218 +74,209 @@ class InfoSystem {
         }
     }
 
-    private static void viewModifyMenu(Map<String, String> record, String key) {
-        String value = record.getOrDefault(key, null);
-        if (value == null) {
-            System.out.println("Here is the information: (no information found)");
-            System.out.println("1. Add new information");
-            System.out.println("3. Exit to main menu");
-        } else {
-            System.out.println("Here is the information: " + value);
-            System.out.println("1. Add new information");
-            System.out.println("2. Modify existing information");
-            System.out.println("3. Exit to main menu");
-        }
-        int opt = getInt();
-        switch (opt) {
-            case 1 -> {
-                System.out.print("Enter new information: ");
-                record.put(key, sc.nextLine());
-                System.out.println("Information added.");
+    private static String getNonEmptyLine(String prompt) {
+        while (true) {
+            System.out.print(prompt);
+            String input = sc.nextLine().trim();
+            if (!input.isEmpty()) {
+                return input;
             }
-            case 2 -> {
-                if (value != null) {
-                    System.out.print("Enter updated information: ");
-                    record.put(key, sc.nextLine());
-                    System.out.println("Information modified.");
-                } else {
-                    System.out.println("Nothing to modify.");
+            System.out.println("Input cannot be empty.");
+        }
+    }
+
+    private static void entityMenu(String entityName,
+                                   String idLabel,
+                                   Map<String, Map<String, String>> records,
+                                   String[] fields) {
+        while (true) {
+            System.out.println("\n" + entityName + " Menu:");
+            System.out.println("1. Add new record");
+            System.out.println("2. Edit existing record");
+            System.out.println("3. Delete record");
+            System.out.println("4. Search records");
+            System.out.println("5. List all records");
+            System.out.println("0. Back to Main Menu");
+            System.out.print("Choice: ");
+            int choice = getInt();
+            switch (choice) {
+                case 1 -> addRecord(entityName, idLabel, records, fields);
+                case 2 -> editRecord(entityName, idLabel, records, fields);
+                case 3 -> deleteRecord(entityName, idLabel, records);
+                case 4 -> searchRecords(entityName, records, fields);
+                case 5 -> listRecords(entityName, records, fields);
+                case 0 -> {
+                    return;
                 }
+                default -> System.out.println("Invalid choice.");
             }
-            case 3 -> {}
-            default -> System.out.println("Invalid option.");
         }
+    }
+
+    private static void addRecord(String entityName,
+                                  String idLabel,
+                                  Map<String, Map<String, String>> records,
+                                  String[] fields) {
+        String id = getNonEmptyLine("Enter " + idLabel + ": ");
+        if (records.containsKey(id)) {
+            System.out.println("A record with that ID already exists.");
+            return;
+        }
+        Map<String, String> record = new HashMap<>();
+        for (String field : fields) {
+            System.out.print("Enter " + field + " (leave blank to skip): ");
+            String value = sc.nextLine().trim();
+            if (!value.isEmpty()) {
+                record.put(field, value);
+            }
+        }
+        records.put(id, record);
+        System.out.println(entityName + " record created for " + id + ".");
+    }
+
+    private static void editRecord(String entityName,
+                                   String idLabel,
+                                   Map<String, Map<String, String>> records,
+                                   String[] fields) {
+        String id = getNonEmptyLine("Enter " + idLabel + " to edit: ");
+        Map<String, String> record = records.get(id);
+        if (record == null) {
+            System.out.println("No record found with that ID.");
+            return;
+        }
+        while (true) {
+            System.out.println("\nCurrent details for " + id + ":");
+            printRecord(id, record, fields);
+            System.out.println("Select a field to update (0 to stop):");
+            for (int i = 0; i < fields.length; i++) {
+                System.out.println((i + 1) + ". " + fields[i]);
+            }
+            System.out.print("Choice: ");
+            int choice = getInt();
+            if (choice == 0) {
+                return;
+            }
+            if (choice < 1 || choice > fields.length) {
+                System.out.println("Invalid choice.");
+                continue;
+            }
+            String field = fields[choice - 1];
+            System.out.print("Enter new value for " + field + " (leave blank to clear): ");
+            String value = sc.nextLine().trim();
+            if (value.isEmpty()) {
+                record.remove(field);
+                System.out.println(field + " cleared.");
+            } else {
+                record.put(field, value);
+                System.out.println(field + " updated.");
+            }
+        }
+    }
+
+    private static void deleteRecord(String entityName,
+                                     String idLabel,
+                                     Map<String, Map<String, String>> records) {
+        String id = getNonEmptyLine("Enter " + idLabel + " to delete: ");
+        if (records.remove(id) != null) {
+            System.out.println(entityName + " record deleted for " + id + ".");
+        } else {
+            System.out.println("No record found with that ID.");
+        }
+    }
+
+    private static void searchRecords(String entityName,
+                                      Map<String, Map<String, String>> records,
+                                      String[] fields) {
+        if (records.isEmpty()) {
+            System.out.println("No " + entityName.toLowerCase() + " records available.");
+            return;
+        }
+        System.out.print("Enter search term (matches ID or field values): ");
+        String term = sc.nextLine().trim();
+        if (term.isEmpty()) {
+            System.out.println("Search term cannot be empty.");
+            return;
+        }
+        boolean found = false;
+        for (Map.Entry<String, Map<String, String>> entry : records.entrySet()) {
+            if (recordMatches(entry.getKey(), entry.getValue(), fields, term)) {
+                printRecord(entry.getKey(), entry.getValue(), fields);
+                found = true;
+            }
+        }
+        if (!found) {
+            System.out.println("No matching " + entityName.toLowerCase() + " records found.");
+        }
+    }
+
+    private static void listRecords(String entityName,
+                                    Map<String, Map<String, String>> records,
+                                    String[] fields) {
+        if (records.isEmpty()) {
+            System.out.println("No " + entityName.toLowerCase() + " records available.");
+            return;
+        }
+        for (Map.Entry<String, Map<String, String>> entry : records.entrySet()) {
+            printRecord(entry.getKey(), entry.getValue(), fields);
+        }
+    }
+
+    private static void printRecord(String id,
+                                    Map<String, String> record,
+                                    String[] fields) {
+        System.out.println("\nID: " + id);
+        for (String field : fields) {
+            String value = record.get(field);
+            System.out.println("  " + field + ": " + (value == null || value.isEmpty() ? "(not set)" : value));
+        }
+    }
+
+    private static boolean recordMatches(String id,
+                                         Map<String, String> record,
+                                         String[] fields,
+                                         String term) {
+        String lowerTerm = term.toLowerCase();
+        if (id.toLowerCase().contains(lowerTerm)) {
+            return true;
+        }
+        for (String field : fields) {
+            String value = record.get(field);
+            if (value != null && value.toLowerCase().contains(lowerTerm)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 
 
     // Warehouse Menu
     private static void warehouseMenu() {
-        System.out.print("Input Warehouse ID: ");
-        String id = sc.nextLine();
-        warehouses.putIfAbsent(id, new HashMap<>());
-        Map<String, String> w = warehouses.get(id);
-
-        while (true) {
-            System.out.println("""
-                    \nWarehouse Menu:
-                    1. Storage
-                    2. Phone number
-                    3. Drone capacity
-                    4. Manager name
-                    5. Address
-                    6. City
-                    0. Exit to Main Menu""");
-            System.out.print("Choice: ");
-            int c = getInt();
-            switch (c) {
-                case 1 -> viewModifyMenu(w, "Storage");
-                case 2 -> viewModifyMenu(w, "Phone number");
-                case 3 -> viewModifyMenu(w, "Drone capacity");
-                case 4 -> viewModifyMenu(w, "Manager name");
-                case 5 -> viewModifyMenu(w, "Address");
-                case 6 -> viewModifyMenu(w, "City");
-                case 0 -> { return; }
-                default -> System.out.println("Invalid choice.");
-            }
-        }
+        entityMenu("Warehouse", "Warehouse ID", warehouses, WAREHOUSE_FIELDS);
     }
 
     // Drone Menu
     private static void droneMenu() {
-        System.out.print("Input Drone serial number: ");
-        String id = sc.nextLine();
-        drones.putIfAbsent(id, new HashMap<>());
-        Map<String, String> d = drones.get(id);
-
-        String[] keys = {
-                "Max speed", "Manufacturer", "Location", "Active status", "Distance autonomy",
-                "Name", "Warranty expiration", "Model", "Year", "Status", "Employee responsible"
-        };
-        while (true) {
-            System.out.println("\nDrone Menu:");
-            for (int i = 0; i < keys.length; i++)
-                System.out.println((i + 1) + ". " + keys[i]);
-            System.out.println("0. Exit to Main Menu");
-            System.out.print("Choice: ");
-            int c = getInt();
-            if (c == 0) return;
-            if (c >= 1 && c <= keys.length) viewModifyMenu(d, keys[c - 1]);
-            else System.out.println("Invalid choice.");
-        }
+        entityMenu("Drone", "Drone serial number", drones, DRONE_FIELDS);
     }
 
     // Equipment Menu
     private static void equipmentMenu() {
-        System.out.println("View all available equipment or view specific equipment?");
-        System.out.println("1. View all available equipment");
-        System.out.println("2. View specific equipment");
-        int c = getInt();
-        if (c == 1) {
-            System.out.print("Type the model number: ");
-            String model = sc.nextLine();
-            System.out.println("Here is the serial number of all available equipment for model " + model + ":");
-            equipment.entrySet().stream()
-                    .filter(e -> model.equals(e.getValue().get("Model")))
-                    .forEach(e -> System.out.println("Serial: " + e.getKey()));
-        } else if (c == 2) {
-            System.out.print("Input equipment serial number: ");
-            String id = sc.nextLine();
-            equipment.putIfAbsent(id, new HashMap<>());
-            Map<String, String> e = equipment.get(id);
-            String[] keys = {"Description", "Model", "Year", "Status", "Location"};
-            while (true) {
-                System.out.println("\nEquipment Menu:");
-                for (int i = 0; i < keys.length; i++)
-                    System.out.println((i + 1) + ". " + keys[i]);
-                System.out.println("0. Exit to Main Menu");
-                int opt = getInt();
-                if (opt == 0) return;
-                if (opt >= 1 && opt <= keys.length)
-                    viewModifyMenu(e, keys[opt - 1]);
-                else
-                    System.out.println("Invalid choice.");
-            }
-        }
+        entityMenu("Equipment", "Equipment serial number", equipment, EQUIPMENT_FIELDS);
     }
 
     // Customer Menu
     private static void customerMenu() {
-        System.out.println("Add new customer or view existing customer?");
-        System.out.println("1. Add new customer");
-        System.out.println("2. View existing customer");
-        int c = getInt();
-        if (c == 1) {
-            System.out.print("First and last name: ");
-            String name = sc.nextLine();
-            System.out.print("Address: ");
-            String address = sc.nextLine();
-            System.out.print("Email: ");
-            String email = sc.nextLine();
-            System.out.print("Start date: ");
-            String start = sc.nextLine();
-            System.out.print("Active moving status: ");
-            String active = sc.nextLine();
-            System.out.print("Phone number (used as ID): ");
-            String phone = sc.nextLine();
-            Map<String, String> info = new HashMap<>();
-            info.put("Name", name);
-            info.put("Address", address);
-            info.put("Email", email);
-            info.put("Start date", start);
-            info.put("Active moving status", active);
-            customers.put(phone, info);
-            System.out.println("Customer added.");
-        } else if (c == 2) {
-            System.out.print("Input the customer phone number: ");
-            String phone = sc.nextLine();
-            customers.putIfAbsent(phone, new HashMap<>());
-            Map<String, String> cust = customers.get(phone);
-            String[] keys = {"Name", "Address", "Warehouse distance", "Email", "Start date", "Active moving status"};
-            while (true) {
-                System.out.println("\nCustomer Menu:");
-                for (int i = 0; i < keys.length; i++)
-                    System.out.println((i + 1) + ". " + keys[i]);
-                System.out.println("0. Exit to Main Menu");
-                int opt = getInt();
-                if (opt == 0) return;
-                if (opt >= 1 && opt <= keys.length)
-                    viewModifyMenu(cust, keys[opt - 1]);
-                else
-                    System.out.println("Invalid choice.");
-            }
-        }
+        entityMenu("Customer", "Customer phone number", customers, CUSTOMER_FIELDS);
     }
 
     // Purchase Order Menu
     private static void purchaseOrderMenu() {
-        System.out.print("Input the purchase order number: ");
-        String id = sc.nextLine();
-        purchaseOrders.putIfAbsent(id, new HashMap<>());
-        Map<String, String> p = purchaseOrders.get(id);
-        String[] keys = {"Element type", "Actual arrival date", "Quantity", "Estimated arrival date", "Value"};
-        while (true) {
-            System.out.println("\nPurchase Order Menu:");
-            for (int i = 0; i < keys.length; i++)
-                System.out.println((i + 1) + ". " + keys[i]);
-            System.out.println("0. Exit to Main Menu");
-            int opt = getInt();
-            if (opt == 0) return;
-            if (opt >= 1 && opt <= keys.length)
-                viewModifyMenu(p, keys[opt - 1]);
-            else
-                System.out.println("Invalid choice.");
-        }
+        entityMenu("Purchase Order", "Purchase order number", purchaseOrders, PURCHASE_ORDER_FIELDS);
     }
 
     // Rating & Review Menu
     private static void ratingMenu() {
-        System.out.print("Input the rating ID: ");
-        String id = sc.nextLine();
-        ratings.putIfAbsent(id, new HashMap<>());
-        Map<String, String> r = ratings.get(id);
-        String[] keys = {"Review", "Rating"};
-        while (true) {
-            System.out.println("\nRating and Review Menu:");
-            for (int i = 0; i < keys.length; i++)
-                System.out.println((i + 1) + ". " + keys[i]);
-            System.out.println("0. Exit to Main Menu");
-            int opt = getInt();
-            if (opt == 0) return;
-            if (opt >= 1 && opt <= keys.length)
-                viewModifyMenu(r, keys[opt - 1]);
-            else
-                System.out.println("Invalid choice.");
-        }
+        entityMenu("Rating", "Rating ID", ratings, RATING_FIELDS);
     }
 }
