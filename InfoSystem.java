@@ -47,6 +47,7 @@ class InfoSystem {
             System.out.println("8. Return Equipment");
             System.out.println("9. Schedule Equipment Delivery");
             System.out.println("10. Schedule Equipment Pickup");
+            System.out.println("11. Useful Reports");
             System.out.println("0. Exit");
             System.out.print("Enter choice: ");
             int choice = getInt();
@@ -62,6 +63,7 @@ class InfoSystem {
                 case 8 -> returnEquipment();
                 case 9 -> scheduleDelivery();
                 case 10 -> schedulePickup();
+                case 11 -> usefulReportsMenu();
                 case 0 -> {
                     System.out.println("Goodbye!");
                     return;
@@ -348,5 +350,10 @@ class InfoSystem {
         System.out.println("Pickup window: " + pickupWindow);
         System.out.println("Assigned drone: " + droneId);
         System.out.println("Equipment pickup scheduled.");
+    }
+
+    private static void usefulReportsMenu() {
+        System.out.println("\nUseful Reports");
+        System.out.println("Reports functionality to be continued...");
     }
 }
