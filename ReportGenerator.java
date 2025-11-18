@@ -100,8 +100,8 @@ public class ReportGenerator {
                      "WHERE C.Name = ? ";
 
         System.out.println("\n--- Renting Checkout Report for " + name + " ---");
-        System.out.printf("| %-30s | %-30s | %-20s |%n", "EquipmentSerialNumber", "Model", "RentalCheckOuts");
-        System.out.println("|--------------------------------|--------------------------------|----------------------|");
+        System.out.printf("| %-30s | %-20s | %-20s |%n", "EquipmentSerialNumber", "Model", "RentalCheckOuts");
+        System.out.println("|--------------------------------|----------------------|----------------------|");
 
         try (Connection conn = DriverManager.getConnection(dbURL);
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -112,9 +112,9 @@ public class ReportGenerator {
                 boolean equip = false;
                 while (rs.next()) {
                     String EquipmentSerialNumber = rs.getString("EquipmentSerialNumber");
-                    String Model = rs.getString("Model");
-                    int RentalCheckOuts = rs.getInt("RentalCheckOuts");
-                    System.out.printf("| %-30s | %-30s | %-20s |%n", EquipmentSerialNumber, Model, RentalCheckOuts);
+                    String Model = rs.getString("Model"); 
+                    String RentalCheckOuts = rs.getString("RentalCheckOuts");
+                    System.out.printf("| %-30s | %-20s | %-20s |%n", EquipmentSerialNumber, Model, RentalCheckOuts);
                     equip = true;
                 }
                 
@@ -125,7 +125,7 @@ public class ReportGenerator {
         } catch (SQLException e) {
             System.out.println("Error running report: " + e.getMessage());
         }
-        System.out.println("|--------------------------------|\n");
+        System.out.println("|------------------------------------------------------------------------------|\n");
     }
 
     public static void PopularItem(String dbURL){
