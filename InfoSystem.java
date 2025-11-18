@@ -384,8 +384,60 @@ class InfoSystem {
     }
 
     private static void usefulReportsMenu() {
+        String dburl = "jdbc:sqlite:checkpoint_four.db";
+
         System.out.println("\nUseful Reports");
-        System.out.println("Reports functionality to be continued...");
+        System.out.println("4. Popular Drone Report");
+        System.out.println("5. Member with Most Rentals Report");
+        System.out.println("6. Equipment Year By Type Report");
+        System.out.println("0. Back to Main Menu");
+        System.out.print("Choice: ");
+
+        int choice = getInt();
+        try {
+                switch (choice) {
+                    case 4 -> {
+                        ReportGenerator.showPopularDroneReport(dburl);
+                    }
+                    case 5 -> {
+                        ReportGenerator.showFrequentRenterReport(dburl);
+                    }
+                    case 6 -> {
+                        // Choose the Type from the set
+                        System.out.println("\nSelect Equipment Type:");
+                        System.out.println("1. Mechanical");
+                        System.out.println("2. Electrical");
+                        System.out.println("3. Hydraulic");
+                        System.out.println("4. Pneumatic");
+                        System.out.print("Enter choice: ");
+                        int typeChoice = getInt();
+                        
+                        String selectedType = switch (typeChoice) {
+                            case 1 -> "Mechanical";
+                            case 2 -> "Electrical";
+                            case 3 -> "Hydraulic";
+                            case 4 -> "Pneumatic";
+                            default -> null;
+                        };
+
+                        if (selectedType == null) {
+                            System.out.println("Invalid selection of type.");
+                            break;
+                        }
+                        System.out.print("Enter maximum year (e.g. 2020): ");
+                        int year = getInt();
+
+                        // Step C: Run Report
+                        ReportGenerator.showEquipmentByTypeAndMaxYear(dburl, selectedType, year);
+                    }
+                    case 0 -> {
+                        return;
+                    }
+                    default -> System.out.println("Invalid choice. Please select a number from the menu.");
+                }
+            } catch (Exception e) {
+                System.out.println("Error: " + e.getMessage());
+            }
     }
     // Minimal DB connect menu
     private static void dbConnectMenu() {
