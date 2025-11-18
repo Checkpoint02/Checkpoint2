@@ -35,6 +35,23 @@ class InfoSystem {
     };
 
     public static void main(String[] args) {
+        // Attempt automatic DB connection on startup. Use first CLI arg as JDBC URL if provided.
+        String defaultDbUrl = "jdbc:sqlite:checkpoint_four.db";
+        String autoUrl = (args != null && args.length > 0 && args[0] != null && !args[0].isEmpty()) ? args[0] : defaultDbUrl;
+        System.out.println("Attempting automatic DB connect to: " + autoUrl);
+        if (DatabaseControl.connect(autoUrl, null, null)) {
+            System.out.println("Auto-connected to database.");
+            // load existing records into memory
+            warehouses.clear(); warehouses.putAll(DatabaseControl.loadAllRecords("Warehouse"));
+            drones.clear(); drones.putAll(DatabaseControl.loadAllRecords("Drone"));
+            equipment.clear(); equipment.putAll(DatabaseControl.loadAllRecords("Equipment"));
+            customers.clear(); customers.putAll(DatabaseControl.loadAllRecords("Customer"));
+            purchaseOrders.clear(); purchaseOrders.putAll(DatabaseControl.loadAllRecords("Purchase Order"));
+            ratings.clear(); ratings.putAll(DatabaseControl.loadAllRecords("Rating"));
+        } else {
+            System.out.println("Auto-connect failed (continuing without DB). Use menu option 12 to connect manually.");
+        }
+
         while (true) {
             System.out.println("\nHello, what would you like to look at today?");
             System.out.println("1. Warehouse Information");
@@ -48,6 +65,7 @@ class InfoSystem {
             System.out.println("9. Schedule Equipment Delivery");
             System.out.println("10. Schedule Equipment Pickup");
             System.out.println("11. Useful Reports");
+            System.out.println("12. Connect to Database");
             System.out.println("0. Exit");
             System.out.print("Enter choice: ");
             int choice = getInt();
@@ -64,6 +82,7 @@ class InfoSystem {
                 case 9 -> scheduleDelivery();
                 case 10 -> schedulePickup();
                 case 11 -> usefulReportsMenu();
+                case 12 -> dbConnectMenu();
                 case 0 -> {
                     System.out.println("Goodbye!");
                     return;
@@ -141,7 +160,12 @@ class InfoSystem {
             }
         }
         records.put(id, record);
-        System.out.println(entityName + " record created for " + id + ".");
+        // persist if DB connected
+        if (DatabaseControl.insertStuff(entityName, id, record)) {
+            System.out.println(entityName + " record created and saved for " + id + ".");
+        } else {
+            System.out.println(entityName + " record created for " + id + ".");
+        }
     }
 
     private static void editRecord(String entityName,
@@ -180,6 +204,7 @@ class InfoSystem {
                 record.put(field, value);
                 System.out.println(field + " updated.");
             }
+            // do not persist edits — only additions are stored in DB per requirement
         }
     }
 
@@ -328,12 +353,18 @@ class InfoSystem {
         String deliveryWindow = getNonEmptyLine("Enter delivery time window: ");
         String droneId = getNonEmptyLine("Enter assigned drone ID: ");
 
-        System.out.println("\nDelivery scheduled for customer " + customerId
-                + " and equipment " + equipmentId + ".");
-        System.out.println("Delivery date: " + deliveryDate);
-        System.out.println("Delivery window: " + deliveryWindow);
-        System.out.println("Assigned drone: " + droneId);
-        System.out.println("Equipment delivery scheduled.");
+        boolean ok = DatabaseControl.insertDeliveryTransactional(customerId, equipmentId, deliveryDate, deliveryWindow, droneId, "Scheduled");
+        if (ok) {
+            // update equipment status in memory
+            Map<String, String> eq = equipment.computeIfAbsent(equipmentId, k -> new HashMap<>());
+            eq.put("Status", "Out for delivery");
+            System.out.println("\nDelivery scheduled and saved for customer " + customerId + " and equipment " + equipmentId + ".");
+            System.out.println("Delivery date: " + deliveryDate);
+            System.out.println("Delivery window: " + deliveryWindow);
+            System.out.println("Assigned drone: " + droneId);
+        } else {
+            System.out.println("Failed to schedule delivery (DB not connected or error). Delivery not saved.");
+        }
     }
 
     private static void schedulePickup() {
@@ -355,5 +386,26 @@ class InfoSystem {
     private static void usefulReportsMenu() {
         System.out.println("\nUseful Reports");
         System.out.println("Reports functionality to be continued...");
+    }
+    // Minimal DB connect menu
+    private static void dbConnectMenu() {
+        System.out.println("\nDatabase Connection");
+        String url = getNonEmptyLine("Enter JDBC URL (e.g. jdbc:sqlite:checkpoint_four.db): ");
+        System.out.print("Enter DB username (leave blank if not required): ");
+        String user = sc.nextLine().trim();
+        System.out.print("Enter DB password (leave blank if not required): ");
+        String pass = sc.nextLine().trim();
+        if (DatabaseControl.connect(url, user.isEmpty() ? null : user, pass.isEmpty() ? null : pass)) {
+            System.out.println("Connected to database.");
+            // load existing records into memory
+            warehouses.clear(); warehouses.putAll(DatabaseControl.loadAllRecords("Warehouse"));
+            drones.clear(); drones.putAll(DatabaseControl.loadAllRecords("Drone"));
+            equipment.clear(); equipment.putAll(DatabaseControl.loadAllRecords("Equipment"));
+            customers.clear(); customers.putAll(DatabaseControl.loadAllRecords("Customer"));
+            purchaseOrders.clear(); purchaseOrders.putAll(DatabaseControl.loadAllRecords("Purchase Order"));
+            ratings.clear(); ratings.putAll(DatabaseControl.loadAllRecords("Rating"));
+        } else {
+            System.out.println("Failed to connect to database. Make sure JDBC driver is on classpath and URL is correct.");
+        }
     }
 }
