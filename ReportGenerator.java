@@ -93,4 +93,79 @@ public class ReportGenerator {
         }
         System.out.println("|-----------------|--------------------------------|--------|\n");
     }
+
+     public static void rentingCheckouts(String dbURL, String name){
+        String sql = "SELECT E.EquipmentSerialNumber, E.Model, R.RentalCheckOuts  " +
+                     "FROM Equipment E Join Rentals R On E.EquipmentSerialNumber = R.EquipmentSerialNumber Join Customer C On R.UserID = C.UserID " +
+                     "WHERE C.Name = ? ";
+
+        System.out.println("\n--- Renting Checkout Report for " + name + " ---");
+        System.out.printf("| %-30s | %-30s | %-20s |%n", "EquipmentSerialNumber", "Model", "RentalCheckOuts");
+        System.out.println("|--------------------------------|--------------------------------|----------------------|");
+
+        try (Connection conn = DriverManager.getConnection(dbURL);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+                pstmt.setString(1, name);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                boolean equip = false;
+                while (rs.next()) {
+                    String EquipmentSerialNumber = rs.getString("EquipmentSerialNumber");
+                    String Model = rs.getString("Model");
+                    int RentalCheckOuts = rs.getInt("RentalCheckOuts");
+                    System.out.printf("| %-30s | %-30s | %-20s |%n", EquipmentSerialNumber, Model, RentalCheckOuts);
+                    equip = true;
+                }
+                
+                if (!equip) {
+                    System.out.println("| No popular items found |");
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error running report: " + e.getMessage());
+        }
+        System.out.println("|--------------------------------|\n");
+    }
+
+    public static void PopularItem(String dbURL){
+        System.out.println("In progress...");
+    }
+
+    public static void popularManufacturer(String dbURL){
+         String sql = "SELECT distinct m.name " +
+                     "FROM manufacturer m join equipment e on m.manufacturerid = e.manufacturerid join rentals r on e.equipmentserialnumber = r.equipmentserialnumber " +
+                     "WHERE r.userID IN ( " +
+                     "    SELECT userID " +
+                     "    FROM rentals " +
+                     "    GROUP BY userID " +
+                     "    HAVING COUNT(*) > " +
+                     "(SELECT avg(total) " +
+                     "FROM (SELECT count(*) as total FROM rentals GROUP BY userID) " +
+                     "))";
+
+        System.out.println("\n--- Popular Manufacturer Report ---");
+        System.out.printf("| %-30s |%n", "Name");
+        System.out.println("|--------------------------------|");
+
+        try (Connection conn = DriverManager.getConnection(dbURL);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                boolean equip = false;
+                while (rs.next()) {
+                    String name = rs.getString("name");
+                    System.out.printf("| %-30s |%n", name);
+                    equip = true;
+                }
+                
+                if (!equip) {
+                    System.out.println("| No popular manufacturers found |");
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error running report: " + e.getMessage());
+        }
+        System.out.println("|--------------------------------|\n");
+    }
 }

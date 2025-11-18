@@ -387,6 +387,9 @@ class InfoSystem {
         String dburl = "jdbc:sqlite:checkpoint_four.db";
 
         System.out.println("\nUseful Reports");
+        System.out.println("1. Renting Checkouts Report");
+        System.out.println("2. Popular Item Report");
+        System.out.println("3. Popular Manufacturer Report");
         System.out.println("4. Popular Drone Report");
         System.out.println("5. Member with Most Rentals Report");
         System.out.println("6. Equipment Year By Type Report");
@@ -396,6 +399,19 @@ class InfoSystem {
         int choice = getInt();
         try {
                 switch (choice) {
+                    case 1 -> {
+                        // Placeholder for future report
+                        System.out.println("Insert name of customer for renting checkout report:");
+                        String customerName = sc.nextLine().trim();
+                        ReportGenerator.rentingCheckouts(dburl, customerName);
+                    }
+                    case 2 -> {
+                        // Placeholder for future report
+                        System.out.println("Report not implemented yet.");
+                    }
+                    case 3 -> {
+                        ReportGenerator.popularManufacturer(dburl);
+                    }
                     case 4 -> {
                         ReportGenerator.showPopularDroneReport(dburl);
                     }
