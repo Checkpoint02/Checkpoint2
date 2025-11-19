@@ -50,7 +50,7 @@ public class DatabaseControl {
         }
         return columns.toArray(new String[0]);
     }
-    
+
     //insert into a database
     public static boolean insertRecord(String tableName, String pkColumnName, String pkValue, Map<String, String> data) {
         if (conn == null) {
@@ -73,8 +73,6 @@ public class DatabaseControl {
 
         // Build SQL: INSERT INTO TableName (ID, Col1, Col2) VALUES (?, ?, ?)
         String sql = "INSERT INTO " + tableName + " (" + columns.toString() + ") VALUES (" + placeholders.toString() + ")";
-        System.out.println("DEBUG SQL: " + sql);
-        System.out.println("DEBUG DATA: " + data);
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             // 1. Set the Primary Key value
