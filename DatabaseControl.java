@@ -10,6 +10,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 
 
@@ -50,7 +52,28 @@ public class DatabaseControl {
         }
         return columns.toArray(new String[0]);
     }
+    public static Set<String> getRequiredColumns(String tableName) {
+        Set<String> required = new HashSet<>();
+        if (conn == null) return required;
 
+        try {
+            DatabaseMetaData meta = conn.getMetaData();
+            ResultSet rs = meta.getColumns(null, null, tableName, null);
+
+            while (rs.next()) {
+                String colName = rs.getString("COLUMN_NAME");
+                int nullable = rs.getInt("NULLABLE");
+
+                // If the database says NO NULLS allowed, add to our list
+                if (nullable == DatabaseMetaData.columnNoNulls) {
+                    required.add(colName);
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error getting constraints: " + e.getMessage());
+        }
+        return required;
+    }
     //insert into a database
     public static boolean insertRecord(String tableName, String pkColumnName, String pkValue, Map<String, String> data) {
         if (conn == null) {
