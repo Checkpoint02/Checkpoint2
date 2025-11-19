@@ -77,30 +77,23 @@ public static String[] getColumnNames(String tableName) {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
    
     //insert into a database
-    public static boolean insertStuff(String[] fields, String tableName, Map<String, String> record) {
+    public static boolean insertRecord(String tableName, String pkColumnName, String pkValue, Map<String, String> data) {
         if (conn == null) {
+            System.out.println("Database not connected.");
             return false;
         }
-        String values = "(?";
-        for (int i = 1; i < fields.length; i++) {
-            values = values + ", ?";
-        }
-        values = values + ")";
-        String ins = "INSERT INTO " + tableName + " VALUES" + values;
-        boolean anyInserted = false;
 
-        try (PreparedStatement pstmt = conn.prepareStatement(ins)) {
-            System.out.println("it works 2");
-            for (int i = 0; i < fields.length; i++) {
-                pstmt.setString(i+1, record.get(fields[i]));
-            }
-            int rowsInserted = pstmt.executeUpdate();
-            if (rowsInserted > 0) {
-                anyInserted = true;
-                System.out.println("it works 3");
-            }
-        } catch (SQLException ex) {
-            System.out.println("Error with inserting record: " + ex.getMessage());
+        StringJoiner columns = new StringJoiner(", ");
+        StringJoiner placeholders = new StringJoiner(", ");
+
+        // Add the Primary Key (ID) column first
+        columns.add(pkColumnName);
+        placeholders.add("?");
+
+        // Add the rest of the fields from the data map
+        for (String key : data.keySet()) {
+            columns.add(key);
+            placeholders.add("?");
         }
         
         return anyInserted;
