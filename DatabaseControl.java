@@ -28,37 +28,48 @@ public class DatabaseControl {
     }
 
     //insert into a database
-    public static boolean insertStuff(String[] fields, String tableName) {
-        System.out.println("it works 1");
+    public static boolean insertStuff(String[] fields, String tableName, Map<String, String> record) {
         if (conn == null) {
-            System.out.println("Nope");
             return false;
         }
-        String fieldscon = "(" + fields[0];
         String values = "(?";
         for (int i = 1; i < fields.length; i++) {
-            fieldscon = fieldscon + ", " + fields[i];
             values = values + ", ?";
         }
-        fieldscon = fieldscon + ")";
-            values = values + ")";
-            System.out.println(fieldscon);
-        String ins = "INSERT INTO " + tableName + fieldscon + " VALUES" + values;
+        values = values + ")";
+        String ins = "INSERT INTO " + tableName + " VALUES" + values;
         boolean anyInserted = false;
+
+        try (PreparedStatement pstmt = conn.prepareStatement(ins)) {
+            System.out.println("it works 2");
+            for (int i = 0; i < fields.length; i++) {
+                pstmt.setString(i+1, record.get(fields[i]));
+            }
+            int rowsInserted = pstmt.executeUpdate();
+            if (rowsInserted > 0) {
+                anyInserted = true;
+                System.out.println("it works 3");
+            }
+        } catch (SQLException ex) {
+            System.out.println("Error with inserting record: " + ex.getMessage());
+        }
+        
+        return anyInserted;
+        /*
         String dburl = "jdbc:sqlite:checkpoint_four.db";
-        try (/*PreparedStatement i = conn.prepareStatement(ins)*/Connection conn = DriverManager.getConnection(dburl);
-             Statement stmt = conn.createStatement()){
+        try (/*PreparedStatement i = conn.prepareStatement(ins) // Connection conn = DriverManager.getConnection(dburl);
+             PreparedStatement pstmt = conn.prepareStatement(ins)){
                 System.out.println("it works 2");
-                try(ResultSet rs = stmt.executeQuery(ins)){
-                    for(int i = 0; i < fields.length; i++){
-                        rs.getString(i + 1);
-                    }
+                for (int i = 0; i < fields.length; i++) {
+                    pstmt.setString(i+1, fields[i]);
+                }
+                }
+                //fails here//////////////////////////////////////////////////////////////////////////////////
+                int rs = pstmt.executeUpdate();
                     anyInserted = true;
                     //catch exception, print out error message (untested so far, idk if it works)
                     System.out.println("it works 3");
-                }catch (SQLException ex) {
-                     System.out.println("Error with inserting record: " + ex.getMessage());
-                }
+                
                  /*ResultSet rs = stmt.executeQuery(ins) {
             
                 for (Map.Entry<String, String> e : record.entrySet()) {
@@ -73,27 +84,13 @@ public class DatabaseControl {
                 } catch (SQLException ex) {
                      System.out.println("Error with inserting record: " + ex.getMessage());
                 }
-            }*/
+            }
                return anyInserted;
         } catch (SQLException e) {
             return false;
-        }
+        }*/
 
-             /*ResultSet rs = stmt.executeQuery(ins) {
-            
-            for (Map.Entry<String, String> e : record.entrySet()) {
-                try {
-                    rs.getString(1);
-                    rs.getString(2);
-                    rs.getString(3);
-                    rs.getString(4);
-                    anyInserted = true;
-                    //catch exception, print out error message (untested so far, idk if it works)
-                    System.out.println("it works 3");
-                } catch (SQLException ex) {
-                     System.out.println("Error with inserting record: " + ex.getMessage());
-                }
-            }*/
+             
     }
 
     // deleting the record from the database
