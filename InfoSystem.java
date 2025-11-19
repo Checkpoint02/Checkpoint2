@@ -32,6 +32,15 @@ public class InfoSystem {
         System.out.println("Attempting automatic DB connect to: " + autoUrl);
         if (DatabaseControl.connect(autoUrl, null, null)) {
             System.out.println("Auto-connected to database.");
+           /*warehouses.clear(); warehouses.putAll(DatabaseControl.loadAllRecords("Warehouse"));
+            drones.clear(); drones.putAll(DatabaseControl.loadAllRecords("Drone"));
+            equipment.clear(); equipment.putAll(DatabaseControl.loadAllRecords("Equipment"));
+            customers.clear(); customers.putAll(DatabaseControl.loadAllRecords("Customer"));
+            purchaseOrders.clear(); purchaseOrders.putAll(DatabaseControl.loadAllRecords("Purchase Order"));
+            ratings.clear(); ratings.putAll(DatabaseControl.loadAllRecords("Rating"));*/
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
             WAREHOUSE_FIELDS = DatabaseControl.getColumnNames("Warehouse");
             DRONE_FIELDS = DatabaseControl.getColumnNames("Drone");
             EQUIPMENT_FIELDS = DatabaseControl.getColumnNames("Equipment");
@@ -130,7 +139,7 @@ public class InfoSystem {
             System.out.print("Choice: ");
             int choice = getInt();
             switch (choice) {
-                case 1 -> addRecord(entityName, idLabel, records, fields);
+                case 1 -> addRecord(entityName, idLabel, records, fields, entityName);
                 case 2 -> editRecord(entityName, idLabel, records, fields);
                 case 3 -> deleteRecord(entityName, idLabel, records);
                 case 4 -> searchRecords(entityName, records, fields);
@@ -142,45 +151,46 @@ public class InfoSystem {
             }
         }
     }
+
+    //get the primary key column name for a table in the database
     private static String getPkColumnName(String entityName) {
         return switch (entityName) {
             case "Warehouse" -> "WarehouseID";
             case "Drone" -> "DroneSerialNumber"; 
             case "Equipment" -> "EquipmentSerialNumber";
-            case "Customer" -> "Customer phone number";
-            case "PurchaseOrders" -> "Purchase order number";
-            case "Rating" -> "Rating ID";
+            case "Customer" -> "UserID";
+            case "PurchaseOrders" -> "OrderNumber";
+            case "Rating" -> "RatingID";
             default -> "ID";
         };
     }
-// this uses hashmaps!! we need it to use the database instead rn
+
+
+ 
+    //adds a record to the database
     private static void addRecord(String entityName,
                                   String idLabel,
                                   Map<String, Map<String, String>> records,
-                                  String[] fields) {
-// 1. Ask for ID
+                                  String[] fields, String tableName) {
         String id = getNonEmptyLine("Enter " + idLabel + ": ");
-        
-        /* Duplicate check removed as requested */
 
+        /* TODO this shouldn't be records, it should access the database to check for existing IDs */
+        //checks if the db contains a record with same primary key
+        if (records.containsKey(id)) {
+            System.out.println("A record with that ID already exists.");
+            return;
+        }
         Map<String, String> record = new HashMap<>();
-        
-        // Get the ID column name to skip it in the loop
-        String pkColumn = getPkColumnName(entityName);
-        
-        // Get the Set of required fields for this specific entity
-        // If logic fails, default to empty set (safe coding)
+
         Set<String> requiredFields = entityRequirements.getOrDefault(entityName, new HashSet<>());
 
         for (String field : fields) {
-            // Skip the ID (we already asked for it)
-            if (field.equalsIgnoreCase(pkColumn)) {
+            //checks if this field is the ID and skips it
+            if(field.equals(idLabel)) {
+                record.put(field, id);
                 continue;
             }
-
-            // CHECK: Is this specific field required by the DB?
             boolean isRequired = requiredFields.contains(field);
-
             if (isRequired) {
                 // --- STRICT INPUT LOOP (Cannot be empty) ---
                 while (true) {
@@ -203,15 +213,16 @@ public class InfoSystem {
         }
         
         records.put(id, record);
-        
-        // Pass the raw Entity Name, the correct ID Column, the ID value, and the Data Map
-        if (DatabaseControl.insertRecord(entityName, pkColumn, id, record)) {
-            System.out.println(entityName + " record created and saved to DB for " + id + ".");
+        //  runs the insert function from DatabaseControl
+        if (DatabaseControl.insertStuff(fields, tableName, record)) {
+            System.out.println(entityName + " record created and saved for " + id + ".");
+
         } else {
             System.out.println(entityName + " record created in MEMORY ONLY for " + id + " (DB save failed).");
         }
     }
 
+    /*TODO new implementation */
     private static void editRecord(String entityName,
                                    String idLabel,
                                    Map<String, Map<String, String>> records,
@@ -252,6 +263,7 @@ public class InfoSystem {
         }
     }
 
+    /*TODO new implementation */
     private static void deleteRecord(String entityName,
                                      String idLabel,
                                      Map<String, Map<String, String>> records) {
@@ -263,6 +275,7 @@ public class InfoSystem {
         }
     }
 
+    /*TODO new implementation */
     private static void searchRecords(String entityName,
                                       Map<String, Map<String, String>> records,
                                       String[] fields) {
@@ -288,6 +301,7 @@ public class InfoSystem {
         }
     }
 
+    /*TODO new implementation */
     private static void listRecords(String entityName,
                                     Map<String, Map<String, String>> records,
                                     String[] fields) {
@@ -300,6 +314,7 @@ public class InfoSystem {
         }
     }
 
+    /*TODO new implementation */
     private static void printRecord(String id,
                                     Map<String, String> record,
                                     String[] fields) {
@@ -310,6 +325,7 @@ public class InfoSystem {
         }
     }
 
+    /*TODO new implementation */
     private static boolean recordMatches(String id,
                                          Map<String, String> record,
                                          String[] fields,
@@ -331,32 +347,32 @@ public class InfoSystem {
 
     // Warehouse Menu
     private static void warehouseMenu() {
-        entityMenu("Warehouse", "Warehouse ID", warehouses, WAREHOUSE_FIELDS);
+        entityMenu("Warehouse", getPkColumnName("Warehouse"), warehouses, WAREHOUSE_FIELDS);
     }
 
     // Drone Menu
     private static void droneMenu() {
-        entityMenu("Drone", "Drone serial number", drones, DRONE_FIELDS);
+        entityMenu("Drone", getPkColumnName("Drone"), drones, DRONE_FIELDS);
     }
 
     // Equipment Menu
     private static void equipmentMenu() {
-        entityMenu("Equipment", "Equipment serial number", equipment, EQUIPMENT_FIELDS);
+        entityMenu("Equipment", getPkColumnName("Equipment"), equipment, EQUIPMENT_FIELDS);
     }
 
     // Customer Menu
     private static void customerMenu() {
-        entityMenu("Customer", "Customer phone number", customers, CUSTOMER_FIELDS);
+        entityMenu("Customer", getPkColumnName("Customer"), customers, CUSTOMER_FIELDS);
     }
 
     // Purchase Order Menu
     private static void purchaseOrderMenu() {
-        entityMenu("PurchaseOrders", "Purchase order number", purchaseOrders, PURCHASE_ORDER_FIELDS);
+        entityMenu("Purchase Order", getPkColumnName("PurchaseOrders"), purchaseOrders, PURCHASE_ORDER_FIELDS);
     }
 
     // Rating & Review Menu
     private static void ratingMenu() {
-        entityMenu("Rating", "Rating ID", ratings, RATING_FIELDS);
+        entityMenu("Rating", getPkColumnName("Rating"), ratings, RATING_FIELDS);
     }
 
     private static void rentEquipment() {

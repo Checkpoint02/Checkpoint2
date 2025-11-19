@@ -1,17 +1,17 @@
 //import the libraries that we need to run sql
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
-import java.util.StringJoiner;
+import java.util.Set;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.HashSet;
-import java.util.Set;
+
 
 
 
@@ -30,8 +30,8 @@ public class DatabaseControl {
             return false;
         }
     }
-
-    public static String[] getColumnNames(String tableName) {
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+public static String[] getColumnNames(String tableName) {
         if (conn == null) return new String[0];
         
         List<String> columns = new ArrayList<>();
@@ -74,6 +74,8 @@ public class DatabaseControl {
         }
         return required;
     }
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+   
     //insert into a database
     public static boolean insertRecord(String tableName, String pkColumnName, String pkValue, Map<String, String> data) {
         if (conn == null) {
@@ -93,27 +95,10 @@ public class DatabaseControl {
             columns.add(key);
             placeholders.add("?");
         }
+        
+        return anyInserted;
 
-        // Build SQL: INSERT INTO TableName (ID, Col1, Col2) VALUES (?, ?, ?)
-        String sql = "INSERT INTO " + tableName + " (" + columns.toString() + ") VALUES (" + placeholders.toString() + ")";
-        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-            // 1. Set the Primary Key value
-            pstmt.setString(1, pkValue);
-            // 2. Set the rest of the values
-            int i = 2;
-            for (String value : data.values()) {
-                pstmt.setString(i, value);
-                i++;
-            }
-
-            pstmt.executeUpdate();
-            return true;
-
-        } catch (SQLException e) {
-            System.out.println("Insert Failed: " + e.getMessage());
-            return false;
-        }
+             
     }
 
     // deleting the record from the database
