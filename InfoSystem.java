@@ -1,5 +1,6 @@
 //import hashmap just to temporarily store date before we can create the databases
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
@@ -189,15 +190,33 @@ private static String getPkColumnName(String entityName) {
             return;
         }
         Map<String, String> record = new HashMap<>();
+
+        Set<String> requiredFields = entityRequirements.getOrDefault(entityName, new HashSet<>());
+
         for (String field : fields) {
             if(field.equals(idLabel)) {
                 record.put(field, id);
                 continue;
             }
-            System.out.print("Enter " + field + " (leave blank to skip): ");
-            String value = sc.nextLine().trim();
-            if (!value.isEmpty()) {
-                record.put(field, value);
+            boolean isRequired = requiredFields.contains(field);
+            if (isRequired) {
+                // --- STRICT INPUT LOOP (Cannot be empty) ---
+                while (true) {
+                    System.out.print("Enter " + field + " (REQUIRED): ");
+                    String value = sc.nextLine().trim();
+                    if (!value.isEmpty()) {
+                        record.put(field, value);
+                        break; // Valid input, move to next field
+                    }
+                    System.out.println("Error: " + field + " cannot be empty.");
+                }
+            } else {
+                // --- OPTIONAL INPUT (Can be skipped) ---
+                System.out.print("Enter " + field + " (leave blank to skip): ");
+                String value = sc.nextLine().trim();
+                if (!value.isEmpty()) {
+                    record.put(field, value);
+                }
             }
         }
         records.put(id, record);
