@@ -8,8 +8,10 @@ public class ReportGenerator {
                      "FROM Customer, Drone, Rentals " +
                      "WHERE Customer.UserID = Rentals.UserID " +
                      "AND Rentals.DroneSerialNumber = Drone.DroneSerialNumber " +
-                     "GROUP BY Drone.DroneSerialNumber " +
-                     "ORDER BY sum(Customer.Distance) DESC";
+                     "GROUP BY Drone.DroneSerialNumber ;";
+                     //+
+                    // "OR                int nullable = rs.getInt(\"NULLABLE\");\n" + //
+                                               //   "R BY sum(Customer.Distance) DESC";//
         // Set up
         System.out.println("\n--- Popular Drone Report (Total Distance) ---");
         System.out.printf("| %-20s | %-18s |%n", "Drone Serial", "Total Distance");

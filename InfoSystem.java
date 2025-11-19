@@ -17,16 +17,7 @@ public class InfoSystem {
     private static Map<String, Map<String, String>> purchaseOrders = new HashMap<>();
     private static Map<String, Map<String, String>> ratings = new HashMap<>();
 
-    /*private static final String[] WAREHOUSE_FIELDS = {"Storage", "PhoneNumber", "WarehouseID", "DroneCapacity", "ManagerName", "Address", "City"};
-    private static final String[] DRONE_FIELDS = {"DroneSerialNumber","WarehouseID","ManufacturerID","Location","DistanceAutonomy","MaxSpeed","Model","Year","WeightCapacity","WarrantyExpire","Status"};
-    private static final String[] EQUIPMENT_FIELDS = {"WarehouseID","Year","Description","Model","Dimensions","EquipmentSerialNumber","ActiveStatus","Location","Weight","ManufacturerID","WarrantyExpire","Type","Status"};
-    private static final String[] CUSTOMER_FIELDS = {"UserID","Phone","Name","FName","LName","Address","Email","StartDate","ActiveMovingStatus","Distance","WarehouseID"};
-    private static final String[] PURCHASE_ORDER_FIELDS = {"OrderNumber","ActualArrivalDate","Quantity","EstimatedArrivalDate","Value","WarehouseID"};
-    private static final String[] RATING_FIELDS = {"UserID","RatingID","Rating","Review","RentalNumber"*/
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     private static Map<String, Set<String>> entityRequirements = new HashMap<>();
-
 
     private static String[] WAREHOUSE_FIELDS = {};
     private static String[] DRONE_FIELDS = {};
@@ -34,9 +25,6 @@ public class InfoSystem {
     private static String[] CUSTOMER_FIELDS = {};
     private static String[] PURCHASE_ORDER_FIELDS = {};
     private static String[] RATING_FIELDS = {};
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    //end of temporary arrays DELETE ALL ABOVE AFTER FINISHING THE DATABASE IMPLEMENTATION!!
 
     public static void main(String[] args) {
  // trying to make an automatic database connection
@@ -62,17 +50,17 @@ public class InfoSystem {
             RATING_FIELDS = DatabaseControl.getColumnNames("Rating");
 
             System.out.println("Loading column names and constraints...");
+    
+    // 1. Load Names (You already have this)
+    // ... other fields ...
 
-            
-        entityRequirements.put("Warehouse", DatabaseControl.getRequiredColumns("Warehouse"));
-        entityRequirements.put("Drone", DatabaseControl.getRequiredColumns("Drone"));
-        entityRequirements.put("Equipment", DatabaseControl.getRequiredColumns("Equipment"));
-        entityRequirements.put("Customer", DatabaseControl.getRequiredColumns("Customer"));
-        entityRequirements.put("PurchaseOrders", DatabaseControl.getRequiredColumns("PurchaseOrders"));
-        entityRequirements.put("Rating", DatabaseControl.getRequiredColumns("Rating"));
-        
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        
+    // 2. Load Requirements (ADD THIS)
+    entityRequirements.put("Warehouse", DatabaseControl.getRequiredColumns("Warehouse"));
+    entityRequirements.put("Drone", DatabaseControl.getRequiredColumns("Drone"));
+    entityRequirements.put("Equipment", DatabaseControl.getRequiredColumns("Equipment"));
+    entityRequirements.put("Customer", DatabaseControl.getRequiredColumns("Customer"));
+    entityRequirements.put("PurchaseOrders", DatabaseControl.getRequiredColumns("PurchaseOrders"));
+    entityRequirements.put("Rating", DatabaseControl.getRequiredColumns("Rating"));
         } else {
             System.out.println("Auto-connect failed (continuing without DB). Use menu option 12 to connect manually.");
         }
@@ -223,13 +211,14 @@ public class InfoSystem {
                 }
             }
         }
+        
         records.put(id, record);
         //  runs the insert function from DatabaseControl
         if (DatabaseControl.insertStuff(fields, tableName, record)) {
             System.out.println(entityName + " record created and saved for " + id + ".");
 
         } else {
-            System.out.println(entityName + " record created for " + id + ".");
+            System.out.println(entityName + " record created in MEMORY ONLY for " + id + " (DB save failed).");
         }
     }
 
@@ -535,7 +524,7 @@ public class InfoSystem {
             drones.clear(); drones.putAll(DatabaseControl.loadAllRecords("Drone"));
             equipment.clear(); equipment.putAll(DatabaseControl.loadAllRecords("Equipment"));
             customers.clear(); customers.putAll(DatabaseControl.loadAllRecords("Customer"));
-            purchaseOrders.clear(); purchaseOrders.putAll(DatabaseControl.loadAllRecords("Purchase Order"));
+            purchaseOrders.clear(); purchaseOrders.putAll(DatabaseControl.loadAllRecords("PurchaseOrders"));
             ratings.clear(); ratings.putAll(DatabaseControl.loadAllRecords("Rating"));
         } else {
             System.out.println("Failed to connect to database. Make sure JDBC driver is on classpath and URL is correct.");

@@ -158,6 +158,7 @@ public class DatabaseControl {
     public static boolean insertStuff(String[] fields, String tableName, Map<String, String> record) {
         //makes sure db is connected
         if (conn == null) {
+            System.out.println("Database not connected.");
             return false;
         }
 
