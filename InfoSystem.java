@@ -406,8 +406,7 @@ class InfoSystem {
                         ReportGenerator.rentingCheckouts(dburl, customerName);
                     }
                     case 2 -> {
-                        // Placeholder for future report
-                        System.out.println("Report not implemented yet.");
+                        ReportGenerator.popularItem(dburl);
                     }
                     case 3 -> {
                         ReportGenerator.popularManufacturer(dburl);

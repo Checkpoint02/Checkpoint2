@@ -128,8 +128,36 @@ public class ReportGenerator {
         System.out.println("|------------------------------------------------------------------------------|\n");
     }
 
-    public static void PopularItem(String dbURL){
-        System.out.println("In progress...");
+    public static void popularItem(String dbURL){
+        String sql = "SELECT e.equipmentSerialNumber, e.description, e.model, count(*) AS timesRented " +
+                    "FROM equipment e JOIN rentals r ON e.equipmentSerialNumber = r.equipmentSerialNumber " +
+                    "GROUP BY e.equipmentSerialNumber, e.description, e.model " +
+                    "ORDER BY timesRented DESC ";
+        System.out.println("\n--- Popular Item Report ---");
+        System.out.printf("| %-20s | %-30s | %-20s | %-15s |%n", "Equipment Serial", "Description", "Model", "Times Rented");
+        System.out.println("|----------------------|--------------------------------|----------------------|-----------------|");
+        try (Connection conn = DriverManager.getConnection(dbURL);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                boolean equip = false;
+                while (rs.next()) {
+                    String serial = rs.getString("equipmentSerialNumber");
+                    String description = rs.getString("description");
+                    String model = rs.getString("model");
+                    int timesRented = rs.getInt("timesRented");
+                    System.out.printf("| %-20s | %-30s | %-20s | %-15d |%n", serial, description, model, timesRented);
+                    equip = true;
+                }
+                
+                if (!equip) {
+                    System.out.println("| No popular items found |");
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error running report: " + e.getMessage());
+        }
+        System.out.println("|------------------------------------------------------------------------------------------------|");
     }
 
     public static void popularManufacturer(String dbURL){
