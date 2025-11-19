@@ -30,8 +30,9 @@ public class DatabaseControl {
             return false;
         }
     }
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-public static String[] getColumnNames(String tableName) {
+
+    //get the column names for a table in the database
+    public static String[] getColumnNames(String tableName) {
         if (conn == null) return new String[0];
         
         List<String> columns = new ArrayList<>();
@@ -52,6 +53,8 @@ public static String[] getColumnNames(String tableName) {
         }
         return columns.toArray(new String[0]);
     }
+
+    //get the required columns for a table in the database
     public static Set<String> getRequiredColumns(String tableName) {
         Set<String> required = new HashSet<>();
         if (conn == null) return required;
@@ -74,35 +77,54 @@ public static String[] getColumnNames(String tableName) {
         }
         return required;
     }
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-   
-    //insert into a database
-    public static boolean insertRecord(String tableName, String pkColumnName, String pkValue, Map<String, String> data) {
+
+
+
+    //insert into a database. Retruns true if data was inserted into the database,
+    //returns false if nothing was inserted, or the database is not connected
+    public static boolean insertStuff(String[] fields, String tableName, Map<String, String> record) {
+        //makes sure db is connected
         if (conn == null) {
             System.out.println("Database not connected.");
             return false;
         }
 
-        StringJoiner columns = new StringJoiner(", ");
-        StringJoiner placeholders = new StringJoiner(", ");
-
-        // Add the Primary Key (ID) column first
-        columns.add(pkColumnName);
-        placeholders.add("?");
-
-        // Add the rest of the fields from the data map
-        for (String key : data.keySet()) {
-            columns.add(key);
-            placeholders.add("?");
+        // Build the SQL insert statement so its long enough for all tables
+        String values = "(?";
+        for (int i = 1; i < fields.length; i++) {
+            values = values + ", ?";
         }
-        
-        return anyInserted;
+        values = values + ")";
 
-             
+        //create the insert statement
+        String ins = "INSERT INTO " + tableName + " VALUES" + values;
+        boolean anyInserted = false;
+
+        //runs the prepared statement
+        try (PreparedStatement pstmt = conn.prepareStatement(ins)) {
+            
+            //sets the values for the prepared statement
+            for (int i = 0; i < fields.length; i++) {
+                pstmt.setString(i+1, record.get(fields[i]));
+            }
+
+            //execute the insert
+            int rowsInserted = pstmt.executeUpdate();
+
+            //check if any rows were inserted so user can be notified that it was added to database
+            if (rowsInserted > 0) {
+                anyInserted = true;
+            }
+
+        } catch (SQLException ex) {
+            System.out.println("Error with inserting record: " + ex.getMessage());
+        }
+    
+        return anyInserted;         
     }
 
     // deleting the record from the database
-//uses prepared statements to prevent sql injection (make sure to write this for the analysis)
+    //uses prepared statements to prevent sql injection (make sure to write this for the analysis)
     public static boolean deleteRecord(String entity, String id) {
         if (conn == null) return false;
         String del = "DELETE FROM records WHERE entity = ? AND id = ?";
