@@ -14,26 +14,12 @@ public class InfoSystem {
     private static Map<String, Map<String, String>> purchaseOrders = new HashMap<>();
     private static Map<String, Map<String, String>> ratings = new HashMap<>();
 
-    private static final String[] WAREHOUSE_FIELDS = {
-            "Storage", "PhoneNumber",  "WarehouseID", "DroneCapacity", "ManagerName", "Address", "City"
-    };
-    private static final String[] DRONE_FIELDS = {
-            "Max speed", "Manufacturer", "Location", "Active status", "Distance autonomy",
-            "Name", "Warranty expiration", "Model", "Year", "Status", "Employee responsible"
-    };
-    private static final String[] EQUIPMENT_FIELDS = {
-            "Description", "Model", "Year", "Status", "Location"
-    };
-    private static final String[] CUSTOMER_FIELDS = {
-            "Name", "Address", "Warehouse distance", "Email", "Start date", "Active moving status"
-    };
-    private static final String[] PURCHASE_ORDER_FIELDS = {
-            "Element type", "Actual arrival date", "Quantity", "Estimated arrival date", "Value"
-    };
-    private static final String[] RATING_FIELDS = {
-            "Review", "Rating"
-    };
-    //end of temporary arrays DELETE ALL ABOVE AFTER FINISHING THE DATABASE IMPLEMENTATION!!
+    private static String[] WAREHOUSE_FIELDS = {};
+    private static String[] DRONE_FIELDS = {};
+    private static String[] EQUIPMENT_FIELDS = {};
+    private static String[] CUSTOMER_FIELDS = {};
+    private static String[] PURCHASE_ORDER_FIELDS = {};
+    private static String[] RATING_FIELDS = {};
 
     public static void main(String[] args) {
  // trying to make an automatic database connection
@@ -42,12 +28,12 @@ public class InfoSystem {
         System.out.println("Attempting automatic DB connect to: " + autoUrl);
         if (DatabaseControl.connect(autoUrl, null, null)) {
             System.out.println("Auto-connected to database.");
-            warehouses.clear(); warehouses.putAll(DatabaseControl.loadAllRecords("Warehouse"));
-            drones.clear(); drones.putAll(DatabaseControl.loadAllRecords("Drone"));
-            equipment.clear(); equipment.putAll(DatabaseControl.loadAllRecords("Equipment"));
-            customers.clear(); customers.putAll(DatabaseControl.loadAllRecords("Customer"));
-            purchaseOrders.clear(); purchaseOrders.putAll(DatabaseControl.loadAllRecords("Purchase Order"));
-            ratings.clear(); ratings.putAll(DatabaseControl.loadAllRecords("Rating"));
+            WAREHOUSE_FIELDS = DatabaseControl.getColumnNames("Warehouse");
+            DRONE_FIELDS = DatabaseControl.getColumnNames("Drone");
+            EQUIPMENT_FIELDS = DatabaseControl.getColumnNames("Equipment");
+            CUSTOMER_FIELDS = DatabaseControl.getColumnNames("Customer");
+            PURCHASE_ORDER_FIELDS = DatabaseControl.getColumnNames("Purchase Order");
+            RATING_FIELDS = DatabaseControl.getColumnNames("Rating");
         } else {
             System.out.println("Auto-connect failed (continuing without DB). Use menu option 12 to connect manually.");
         }
@@ -139,17 +125,30 @@ public class InfoSystem {
             }
         }
     }
-
+    private static String getPkColumnName(String entityName) {
+        return switch (entityName) {
+            case "Warehouse" -> "WarehouseID";
+            case "Drone" -> "DroneSerialNumber"; 
+            case "Equipment" -> "Equipment serial number";
+            case "Customer" -> "Customer phone number";
+            case "Purchase Order" -> "Purchase order number";
+            case "Rating" -> "Rating ID";
+            default -> "ID";
+        };
+    }
 // this uses hashmaps!! we need it to use the database instead rn
     private static void addRecord(String entityName,
                                   String idLabel,
                                   Map<String, Map<String, String>> records,
                                   String[] fields) {
         String id = getNonEmptyLine("Enter " + idLabel + ": ");
+
+        // Optional: Check memory duplicate
         /*if (records.containsKey(id)) {
             System.out.println("A record with that ID already exists.");
             return;
         }*/
+
         Map<String, String> record = new HashMap<>();
         for (String field : fields) {
             System.out.print("Enter " + field + " (leave blank to skip): ");
@@ -159,12 +158,14 @@ public class InfoSystem {
             }
         }
         records.put(id, record);
-        //  if DB connected
-        if (DatabaseControl.insertStuff(WAREHOUSE_FIELDS, "Warehouse")) {
-            System.out.println(entityName + " record created and saved for " + id + ".");
 
+        String pkColumn = getPkColumnName(entityName);
+        
+        // Pass the raw Entity Name, the correct ID Column, the ID value, and the Data Map
+        if (DatabaseControl.insertRecord(entityName, pkColumn, id, record)) {
+            System.out.println(entityName + " record created and saved to DB for " + id + ".");
         } else {
-            System.out.println(entityName + " record created for " + id + ".");
+            System.out.println(entityName + " record created in MEMORY ONLY for " + id + " (DB save failed).");
         }
     }
 
