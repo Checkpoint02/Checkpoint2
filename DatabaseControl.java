@@ -34,23 +34,25 @@ public class DatabaseControl {
             System.out.println("Nope");
             return false;
         }
-        String fieldscon = "";
-        String values = "";
-        for (int i = 0; i < fields.length; i++) {
-            fieldscon = fieldscon + "," + fields[i];
-            values = values + ",?";
+        String fieldscon = "(" + fields[0];
+        String values = "(?";
+        for (int i = 1; i < fields.length; i++) {
+            fieldscon = fieldscon + ", " + fields[i];
+            values = values + ", ?";
         }
-        String ins = "INSERT INTO " + tableName + "(" + fieldscon + ") VALUES(" + values + ")";
+        fieldscon = fieldscon + ")";
+            values = values + ")";
+            System.out.println(fieldscon);
+        String ins = "INSERT INTO " + tableName + fieldscon + " VALUES" + values;
         boolean anyInserted = false;
         String dburl = "jdbc:sqlite:checkpoint_four.db";
         try (/*PreparedStatement i = conn.prepareStatement(ins)*/Connection conn = DriverManager.getConnection(dburl);
              Statement stmt = conn.createStatement()){
                 System.out.println("it works 2");
                 try(ResultSet rs = stmt.executeQuery(ins)){
-                    rs.getString(1);
-                    rs.getString(2);
-                    rs.getString(3);
-                    rs.getString(4);
+                    for(int i = 0; i < fields.length; i++){
+                        rs.getString(i + 1);
+                    }
                     anyInserted = true;
                     //catch exception, print out error message (untested so far, idk if it works)
                     System.out.println("it works 3");
