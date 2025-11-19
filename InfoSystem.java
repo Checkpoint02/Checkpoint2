@@ -160,7 +160,7 @@ public class InfoSystem {
         }
         records.put(id, record);
         //  if DB connected
-        if (DatabaseControl.insertStuff(WAREHOUSE_FIELDS, "Warehouse")) {
+        if (DatabaseControl.insertStuff(WAREHOUSE_FIELDS, "Warehouse", record)) {
             System.out.println(entityName + " record created and saved for " + id + ".");
 
         } else {
