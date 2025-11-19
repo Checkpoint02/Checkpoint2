@@ -1,7 +1,9 @@
 //import hashmap just to temporarily store date before we can create the databases
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
 
 public class InfoSystem {
     private static Scanner sc = new Scanner(System.in);
@@ -14,26 +16,14 @@ public class InfoSystem {
     private static Map<String, Map<String, String>> purchaseOrders = new HashMap<>();
     private static Map<String, Map<String, String>> ratings = new HashMap<>();
 
-    private static final String[] WAREHOUSE_FIELDS = {
-            "Storage", "PhoneNumber",  "WarehouseID", "DroneCapacity", "ManagerName", "Address", "City"
-    };
-    private static final String[] DRONE_FIELDS = {
-            "Max speed", "Manufacturer", "Location", "Active status", "Distance autonomy",
-            "Name", "Warranty expiration", "Model", "Year", "Status", "Employee responsible"
-    };
-    private static final String[] EQUIPMENT_FIELDS = {
-            "Description", "Model", "Year", "Status", "Location"
-    };
-    private static final String[] CUSTOMER_FIELDS = {
-            "Name", "Address", "Warehouse distance", "Email", "Start date", "Active moving status"
-    };
-    private static final String[] PURCHASE_ORDER_FIELDS = {
-            "Element type", "Actual arrival date", "Quantity", "Estimated arrival date", "Value"
-    };
-    private static final String[] RATING_FIELDS = {
-            "Review", "Rating"
-    };
-    //end of temporary arrays DELETE ALL ABOVE AFTER FINISHING THE DATABASE IMPLEMENTATION!!
+    private static Map<String, Set<String>> entityRequirements = new HashMap<>();
+
+    private static String[] WAREHOUSE_FIELDS = {};
+    private static String[] DRONE_FIELDS = {};
+    private static String[] EQUIPMENT_FIELDS = {};
+    private static String[] CUSTOMER_FIELDS = {};
+    private static String[] PURCHASE_ORDER_FIELDS = {};
+    private static String[] RATING_FIELDS = {};
 
     public static void main(String[] args) {
  // trying to make an automatic database connection
@@ -42,12 +32,25 @@ public class InfoSystem {
         System.out.println("Attempting automatic DB connect to: " + autoUrl);
         if (DatabaseControl.connect(autoUrl, null, null)) {
             System.out.println("Auto-connected to database.");
-            warehouses.clear(); warehouses.putAll(DatabaseControl.loadAllRecords("Warehouse"));
-            drones.clear(); drones.putAll(DatabaseControl.loadAllRecords("Drone"));
-            equipment.clear(); equipment.putAll(DatabaseControl.loadAllRecords("Equipment"));
-            customers.clear(); customers.putAll(DatabaseControl.loadAllRecords("Customer"));
-            purchaseOrders.clear(); purchaseOrders.putAll(DatabaseControl.loadAllRecords("Purchase Order"));
-            ratings.clear(); ratings.putAll(DatabaseControl.loadAllRecords("Rating"));
+            WAREHOUSE_FIELDS = DatabaseControl.getColumnNames("Warehouse");
+            DRONE_FIELDS = DatabaseControl.getColumnNames("Drone");
+            EQUIPMENT_FIELDS = DatabaseControl.getColumnNames("Equipment");
+            CUSTOMER_FIELDS = DatabaseControl.getColumnNames("Customer");
+            PURCHASE_ORDER_FIELDS = DatabaseControl.getColumnNames("PurchaseOrders");
+            RATING_FIELDS = DatabaseControl.getColumnNames("Rating");
+
+            System.out.println("Loading column names and constraints...");
+    
+    // 1. Load Names (You already have this)
+    // ... other fields ...
+
+    // 2. Load Requirements (ADD THIS)
+    entityRequirements.put("Warehouse", DatabaseControl.getRequiredColumns("Warehouse"));
+    entityRequirements.put("Drone", DatabaseControl.getRequiredColumns("Drone"));
+    entityRequirements.put("Equipment", DatabaseControl.getRequiredColumns("Equipment"));
+    entityRequirements.put("Customer", DatabaseControl.getRequiredColumns("Customer"));
+    entityRequirements.put("PurchaseOrders", DatabaseControl.getRequiredColumns("PurchaseOrders"));
+    entityRequirements.put("Rating", DatabaseControl.getRequiredColumns("Rating"));
         } else {
             System.out.println("Auto-connect failed (continuing without DB). Use menu option 12 to connect manually.");
         }
@@ -139,32 +142,73 @@ public class InfoSystem {
             }
         }
     }
-
+    private static String getPkColumnName(String entityName) {
+        return switch (entityName) {
+            case "Warehouse" -> "WarehouseID";
+            case "Drone" -> "DroneSerialNumber"; 
+            case "Equipment" -> "EquipmentSerialNumber";
+            case "Customer" -> "Customer phone number";
+            case "PurchaseOrders" -> "Purchase order number";
+            case "Rating" -> "Rating ID";
+            default -> "ID";
+        };
+    }
 // this uses hashmaps!! we need it to use the database instead rn
     private static void addRecord(String entityName,
                                   String idLabel,
                                   Map<String, Map<String, String>> records,
                                   String[] fields) {
+// 1. Ask for ID
         String id = getNonEmptyLine("Enter " + idLabel + ": ");
-        /*if (records.containsKey(id)) {
-            System.out.println("A record with that ID already exists.");
-            return;
-        }*/
+        
+        /* Duplicate check removed as requested */
+
         Map<String, String> record = new HashMap<>();
+        
+        // Get the ID column name to skip it in the loop
+        String pkColumn = getPkColumnName(entityName);
+        
+        // Get the Set of required fields for this specific entity
+        // If logic fails, default to empty set (safe coding)
+        Set<String> requiredFields = entityRequirements.getOrDefault(entityName, new HashSet<>());
+
         for (String field : fields) {
-            System.out.print("Enter " + field + " (leave blank to skip): ");
-            String value = sc.nextLine().trim();
-            if (!value.isEmpty()) {
-                record.put(field, value);
+            // Skip the ID (we already asked for it)
+            if (field.equalsIgnoreCase(pkColumn)) {
+                continue;
+            }
+
+            // CHECK: Is this specific field required by the DB?
+            boolean isRequired = requiredFields.contains(field);
+
+            if (isRequired) {
+                // --- STRICT INPUT LOOP (Cannot be empty) ---
+                while (true) {
+                    System.out.print("Enter " + field + " (REQUIRED): ");
+                    String value = sc.nextLine().trim();
+                    if (!value.isEmpty()) {
+                        record.put(field, value);
+                        break; // Valid input, move to next field
+                    }
+                    System.out.println("Error: " + field + " cannot be empty.");
+                }
+            } else {
+                // --- OPTIONAL INPUT (Can be skipped) ---
+                System.out.print("Enter " + field + " (leave blank to skip): ");
+                String value = sc.nextLine().trim();
+                if (!value.isEmpty()) {
+                    record.put(field, value);
+                }
             }
         }
+        
         records.put(id, record);
-        //  if DB connected
-        if (DatabaseControl.insertStuff(WAREHOUSE_FIELDS, "Warehouse", record)) {
-            System.out.println(entityName + " record created and saved for " + id + ".");
-
+        
+        // Pass the raw Entity Name, the correct ID Column, the ID value, and the Data Map
+        if (DatabaseControl.insertRecord(entityName, pkColumn, id, record)) {
+            System.out.println(entityName + " record created and saved to DB for " + id + ".");
         } else {
-            System.out.println(entityName + " record created for " + id + ".");
+            System.out.println(entityName + " record created in MEMORY ONLY for " + id + " (DB save failed).");
         }
     }
 
@@ -307,7 +351,7 @@ public class InfoSystem {
 
     // Purchase Order Menu
     private static void purchaseOrderMenu() {
-        entityMenu("Purchase Order", "Purchase order number", purchaseOrders, PURCHASE_ORDER_FIELDS);
+        entityMenu("PurchaseOrders", "Purchase order number", purchaseOrders, PURCHASE_ORDER_FIELDS);
     }
 
     // Rating & Review Menu
@@ -469,7 +513,7 @@ public class InfoSystem {
             drones.clear(); drones.putAll(DatabaseControl.loadAllRecords("Drone"));
             equipment.clear(); equipment.putAll(DatabaseControl.loadAllRecords("Equipment"));
             customers.clear(); customers.putAll(DatabaseControl.loadAllRecords("Customer"));
-            purchaseOrders.clear(); purchaseOrders.putAll(DatabaseControl.loadAllRecords("Purchase Order"));
+            purchaseOrders.clear(); purchaseOrders.putAll(DatabaseControl.loadAllRecords("PurchaseOrders"));
             ratings.clear(); ratings.putAll(DatabaseControl.loadAllRecords("Rating"));
         } else {
             System.out.println("Failed to connect to database. Make sure JDBC driver is on classpath and URL is correct.");

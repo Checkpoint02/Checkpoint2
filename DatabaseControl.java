@@ -1,13 +1,17 @@
 //import the libraries that we need to run sql
 
 import java.util.Map;
+import java.util.StringJoiner;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
-
+import java.util.ArrayList;
+import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 
 
@@ -27,70 +31,89 @@ public class DatabaseControl {
         }
     }
 
-    //insert into a database
-    public static boolean insertStuff(String[] fields, String tableName, Map<String, String> record) {
-        if (conn == null) {
-            return false;
-        }
-        String values = "(?";
-        for (int i = 1; i < fields.length; i++) {
-            values = values + ", ?";
-        }
-        values = values + ")";
-        String ins = "INSERT INTO " + tableName + " VALUES" + values;
-        boolean anyInserted = false;
-
-        try (PreparedStatement pstmt = conn.prepareStatement(ins)) {
-            System.out.println("it works 2");
-            for (int i = 0; i < fields.length; i++) {
-                pstmt.setString(i+1, record.get(fields[i]));
-            }
-            int rowsInserted = pstmt.executeUpdate();
-            if (rowsInserted > 0) {
-                anyInserted = true;
-                System.out.println("it works 3");
-            }
-        } catch (SQLException ex) {
-            System.out.println("Error with inserting record: " + ex.getMessage());
-        }
+    public static String[] getColumnNames(String tableName) {
+        if (conn == null) return new String[0];
         
-        return anyInserted;
-        /*
-        String dburl = "jdbc:sqlite:checkpoint_four.db";
-        try (/*PreparedStatement i = conn.prepareStatement(ins) // Connection conn = DriverManager.getConnection(dburl);
-             PreparedStatement pstmt = conn.prepareStatement(ins)){
-                System.out.println("it works 2");
-                for (int i = 0; i < fields.length; i++) {
-                    pstmt.setString(i+1, fields[i]);
-                }
-                }
-                //fails here//////////////////////////////////////////////////////////////////////////////////
-                int rs = pstmt.executeUpdate();
-                    anyInserted = true;
-                    //catch exception, print out error message (untested so far, idk if it works)
-                    System.out.println("it works 3");
-                
-                 /*ResultSet rs = stmt.executeQuery(ins) {
+        List<String> columns = new ArrayList<>();
+        try {
+            DatabaseMetaData meta = conn.getMetaData();
+            // The arguments are: Catalog, SchemaPattern, TableNamePattern, ColumnNamePattern
+            // We pass the tableName. Note: SQLite sometimes ignores case, but exact match is safer.
+            ResultSet rs = meta.getColumns(null, null, tableName, null);
             
-                for (Map.Entry<String, String> e : record.entrySet()) {
-                try {
-                    rs.getString(1);
-                    rs.getString(2);
-                    rs.getString(3);
-                    rs.getString(4);
-                    anyInserted = true;
-                    //catch exception, print out error message (untested so far, idk if it works)
-                    System.out.println("it works 3");
-                } catch (SQLException ex) {
-                     System.out.println("Error with inserting record: " + ex.getMessage());
+            while (rs.next()) {
+                String colName = rs.getString("COLUMN_NAME");
+                // Optional: Skip "ID" columns if you want to auto-generate them, 
+                // but for now let's keep everything.
+                columns.add(colName);
+            }
+        } catch (SQLException e) {
+            System.out.println("Error getting columns: " + e.getMessage());
+        }
+        return columns.toArray(new String[0]);
+    }
+    public static Set<String> getRequiredColumns(String tableName) {
+        Set<String> required = new HashSet<>();
+        if (conn == null) return required;
+
+        try {
+            DatabaseMetaData meta = conn.getMetaData();
+            ResultSet rs = meta.getColumns(null, null, tableName, null);
+
+            while (rs.next()) {
+                String colName = rs.getString("COLUMN_NAME");
+                int nullable = rs.getInt("NULLABLE");
+
+                // If the database says NO NULLS allowed, add to our list
+                if (nullable == DatabaseMetaData.columnNoNulls) {
+                    required.add(colName);
                 }
             }
-               return anyInserted;
         } catch (SQLException e) {
+            System.out.println("Error getting constraints: " + e.getMessage());
+        }
+        return required;
+    }
+    //insert into a database
+    public static boolean insertRecord(String tableName, String pkColumnName, String pkValue, Map<String, String> data) {
+        if (conn == null) {
+            System.out.println("Database not connected.");
             return false;
-        }*/
+        }
 
-             
+        StringJoiner columns = new StringJoiner(", ");
+        StringJoiner placeholders = new StringJoiner(", ");
+
+        // Add the Primary Key (ID) column first
+        columns.add(pkColumnName);
+        placeholders.add("?");
+
+        // Add the rest of the fields from the data map
+        for (String key : data.keySet()) {
+            columns.add(key);
+            placeholders.add("?");
+        }
+
+        // Build SQL: INSERT INTO TableName (ID, Col1, Col2) VALUES (?, ?, ?)
+        String sql = "INSERT INTO " + tableName + " (" + columns.toString() + ") VALUES (" + placeholders.toString() + ")";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            // 1. Set the Primary Key value
+            pstmt.setString(1, pkValue);
+            // 2. Set the rest of the values
+            int i = 2;
+            for (String value : data.values()) {
+                pstmt.setString(i, value);
+                i++;
+            }
+
+            pstmt.executeUpdate();
+            return true;
+
+        } catch (SQLException e) {
+            System.out.println("Insert Failed: " + e.getMessage());
+            return false;
+        }
     }
 
     // deleting the record from the database
