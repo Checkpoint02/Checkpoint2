@@ -1,12 +1,16 @@
 //import the libraries that we need to run sql
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 
 
 
@@ -26,7 +30,52 @@ public class DatabaseControl {
             return false;
         }
     }
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+public static String[] getColumnNames(String tableName) {
+        if (conn == null) return new String[0];
+        
+        List<String> columns = new ArrayList<>();
+        try {
+            DatabaseMetaData meta = conn.getMetaData();
+            // The arguments are: Catalog, SchemaPattern, TableNamePattern, ColumnNamePattern
+            // We pass the tableName. Note: SQLite sometimes ignores case, but exact match is safer.
+            ResultSet rs = meta.getColumns(null, null, tableName, null);
+            
+            while (rs.next()) {
+                String colName = rs.getString("COLUMN_NAME");
+                // Optional: Skip "ID" columns if you want to auto-generate them, 
+                // but for now let's keep everything.
+                columns.add(colName);
+            }
+        } catch (SQLException e) {
+            System.out.println("Error getting columns: " + e.getMessage());
+        }
+        return columns.toArray(new String[0]);
+    }
+    public static Set<String> getRequiredColumns(String tableName) {
+        Set<String> required = new HashSet<>();
+        if (conn == null) return required;
 
+        try {
+            DatabaseMetaData meta = conn.getMetaData();
+            ResultSet rs = meta.getColumns(null, null, tableName, null);
+
+            while (rs.next()) {
+                String colName = rs.getString("COLUMN_NAME");
+                int nullable = rs.getInt("NULLABLE");
+
+                // If the database says NO NULLS allowed, add to our list
+                if (nullable == DatabaseMetaData.columnNoNulls) {
+                    required.add(colName);
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error getting constraints: " + e.getMessage());
+        }
+        return required;
+    }
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+   
     //insert into a database
     public static boolean insertStuff(String[] fields, String tableName, Map<String, String> record) {
         if (conn == null) {
@@ -55,40 +104,6 @@ public class DatabaseControl {
         }
         
         return anyInserted;
-        /*
-        String dburl = "jdbc:sqlite:checkpoint_four.db";
-        try (/*PreparedStatement i = conn.prepareStatement(ins) // Connection conn = DriverManager.getConnection(dburl);
-             PreparedStatement pstmt = conn.prepareStatement(ins)){
-                System.out.println("it works 2");
-                for (int i = 0; i < fields.length; i++) {
-                    pstmt.setString(i+1, fields[i]);
-                }
-                }
-                //fails here//////////////////////////////////////////////////////////////////////////////////
-                int rs = pstmt.executeUpdate();
-                    anyInserted = true;
-                    //catch exception, print out error message (untested so far, idk if it works)
-                    System.out.println("it works 3");
-                
-                 /*ResultSet rs = stmt.executeQuery(ins) {
-            
-                for (Map.Entry<String, String> e : record.entrySet()) {
-                try {
-                    rs.getString(1);
-                    rs.getString(2);
-                    rs.getString(3);
-                    rs.getString(4);
-                    anyInserted = true;
-                    //catch exception, print out error message (untested so far, idk if it works)
-                    System.out.println("it works 3");
-                } catch (SQLException ex) {
-                     System.out.println("Error with inserting record: " + ex.getMessage());
-                }
-            }
-               return anyInserted;
-        } catch (SQLException e) {
-            return false;
-        }*/
 
              
     }

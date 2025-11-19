@@ -2,6 +2,7 @@
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
 
 public class InfoSystem {
     private static Scanner sc = new Scanner(System.in);
@@ -14,25 +15,25 @@ public class InfoSystem {
     private static Map<String, Map<String, String>> purchaseOrders = new HashMap<>();
     private static Map<String, Map<String, String>> ratings = new HashMap<>();
 
-    private static final String[] WAREHOUSE_FIELDS = {
-            "Storage", "PhoneNumber",  "WarehouseID", "DroneCapacity", "ManagerName", "Address", "City"
-    };
-    private static final String[] DRONE_FIELDS = {
-            "Max speed", "Manufacturer", "Location", "Active status", "Distance autonomy",
-            "Name", "Warranty expiration", "Model", "Year", "Status", "Employee responsible"
-    };
-    private static final String[] EQUIPMENT_FIELDS = {
-            "Description", "Model", "Year", "Status", "Location"
-    };
-    private static final String[] CUSTOMER_FIELDS = {
-            "Name", "Address", "Warehouse distance", "Email", "Start date", "Active moving status"
-    };
-    private static final String[] PURCHASE_ORDER_FIELDS = {
-            "Element type", "Actual arrival date", "Quantity", "Estimated arrival date", "Value"
-    };
-    private static final String[] RATING_FIELDS = {
-            "Review", "Rating"
-    };
+    /*private static final String[] WAREHOUSE_FIELDS = {"Storage", "PhoneNumber", "WarehouseID", "DroneCapacity", "ManagerName", "Address", "City"};
+    private static final String[] DRONE_FIELDS = {"DroneSerialNumber","WarehouseID","ManufacturerID","Location","DistanceAutonomy","MaxSpeed","Model","Year","WeightCapacity","WarrantyExpire","Status"};
+    private static final String[] EQUIPMENT_FIELDS = {"WarehouseID","Year","Description","Model","Dimensions","EquipmentSerialNumber","ActiveStatus","Location","Weight","ManufacturerID","WarrantyExpire","Type","Status"};
+    private static final String[] CUSTOMER_FIELDS = {"UserID","Phone","Name","FName","LName","Address","Email","StartDate","ActiveMovingStatus","Distance","WarehouseID"};
+    private static final String[] PURCHASE_ORDER_FIELDS = {"OrderNumber","ActualArrivalDate","Quantity","EstimatedArrivalDate","Value","WarehouseID"};
+    private static final String[] RATING_FIELDS = {"UserID","RatingID","Rating","Review","RentalNumber"*/
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    private static Map<String, Set<String>> entityRequirements = new HashMap<>();
+
+
+    private static String[] WAREHOUSE_FIELDS = {};
+    private static String[] DRONE_FIELDS = {};
+    private static String[] EQUIPMENT_FIELDS = {};
+    private static String[] CUSTOMER_FIELDS = {};
+    private static String[] PURCHASE_ORDER_FIELDS = {};
+    private static String[] RATING_FIELDS = {};
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     //end of temporary arrays DELETE ALL ABOVE AFTER FINISHING THE DATABASE IMPLEMENTATION!!
 
     public static void main(String[] args) {
@@ -42,12 +43,34 @@ public class InfoSystem {
         System.out.println("Attempting automatic DB connect to: " + autoUrl);
         if (DatabaseControl.connect(autoUrl, null, null)) {
             System.out.println("Auto-connected to database.");
-            warehouses.clear(); warehouses.putAll(DatabaseControl.loadAllRecords("Warehouse"));
+           /*warehouses.clear(); warehouses.putAll(DatabaseControl.loadAllRecords("Warehouse"));
             drones.clear(); drones.putAll(DatabaseControl.loadAllRecords("Drone"));
             equipment.clear(); equipment.putAll(DatabaseControl.loadAllRecords("Equipment"));
             customers.clear(); customers.putAll(DatabaseControl.loadAllRecords("Customer"));
             purchaseOrders.clear(); purchaseOrders.putAll(DatabaseControl.loadAllRecords("Purchase Order"));
-            ratings.clear(); ratings.putAll(DatabaseControl.loadAllRecords("Rating"));
+            ratings.clear(); ratings.putAll(DatabaseControl.loadAllRecords("Rating"));*/
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+            WAREHOUSE_FIELDS = DatabaseControl.getColumnNames("Warehouse");
+            DRONE_FIELDS = DatabaseControl.getColumnNames("Drone");
+            EQUIPMENT_FIELDS = DatabaseControl.getColumnNames("Equipment");
+            CUSTOMER_FIELDS = DatabaseControl.getColumnNames("Customer");
+            PURCHASE_ORDER_FIELDS = DatabaseControl.getColumnNames("PurchaseOrders");
+            RATING_FIELDS = DatabaseControl.getColumnNames("Rating");
+
+            System.out.println("Loading column names and constraints...");
+
+            
+        entityRequirements.put("Warehouse", DatabaseControl.getRequiredColumns("Warehouse"));
+        entityRequirements.put("Drone", DatabaseControl.getRequiredColumns("Drone"));
+        entityRequirements.put("Equipment", DatabaseControl.getRequiredColumns("Equipment"));
+        entityRequirements.put("Customer", DatabaseControl.getRequiredColumns("Customer"));
+        entityRequirements.put("PurchaseOrders", DatabaseControl.getRequiredColumns("PurchaseOrders"));
+        entityRequirements.put("Rating", DatabaseControl.getRequiredColumns("Rating"));
+        
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        
         } else {
             System.out.println("Auto-connect failed (continuing without DB). Use menu option 12 to connect manually.");
         }
@@ -127,7 +150,7 @@ public class InfoSystem {
             System.out.print("Choice: ");
             int choice = getInt();
             switch (choice) {
-                case 1 -> addRecord(entityName, idLabel, records, fields);
+                case 1 -> addRecord(entityName, idLabel, records, fields, entityName);
                 case 2 -> editRecord(entityName, idLabel, records, fields);
                 case 3 -> deleteRecord(entityName, idLabel, records);
                 case 4 -> searchRecords(entityName, records, fields);
@@ -140,18 +163,37 @@ public class InfoSystem {
         }
     }
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+private static String getPkColumnName(String entityName) {
+        return switch (entityName) {
+            case "Warehouse" -> "WarehouseID";
+            case "Drone" -> "DroneSerialNumber"; 
+            case "Equipment" -> "EquipmentSerialNumber";
+            case "Customer" -> "UserID";
+            case "PurchaseOrders" -> "OrderNumber";
+            case "Rating" -> "RatingID";
+            default -> "ID";
+        };
+    }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 // this uses hashmaps!! we need it to use the database instead rn
     private static void addRecord(String entityName,
                                   String idLabel,
                                   Map<String, Map<String, String>> records,
-                                  String[] fields) {
+                                  String[] fields, String tableName) {
         String id = getNonEmptyLine("Enter " + idLabel + ": ");
-        /*if (records.containsKey(id)) {
+/* TODO this shouldn't be records, it should access the database to check for existing IDs */
+        if (records.containsKey(id)) {
             System.out.println("A record with that ID already exists.");
             return;
-        }*/
+        }
         Map<String, String> record = new HashMap<>();
         for (String field : fields) {
+            if(field.equals(idLabel)) {
+                record.put(field, id);
+                continue;
+            }
             System.out.print("Enter " + field + " (leave blank to skip): ");
             String value = sc.nextLine().trim();
             if (!value.isEmpty()) {
@@ -160,7 +202,7 @@ public class InfoSystem {
         }
         records.put(id, record);
         //  if DB connected
-        if (DatabaseControl.insertStuff(WAREHOUSE_FIELDS, "Warehouse", record)) {
+        if (DatabaseControl.insertStuff(fields, tableName, record)) {
             System.out.println(entityName + " record created and saved for " + id + ".");
 
         } else {
@@ -287,32 +329,32 @@ public class InfoSystem {
 
     // Warehouse Menu
     private static void warehouseMenu() {
-        entityMenu("Warehouse", "Warehouse ID", warehouses, WAREHOUSE_FIELDS);
+        entityMenu("Warehouse", getPkColumnName("Warehouse"), warehouses, WAREHOUSE_FIELDS);
     }
 
     // Drone Menu
     private static void droneMenu() {
-        entityMenu("Drone", "Drone serial number", drones, DRONE_FIELDS);
+        entityMenu("Drone", getPkColumnName("Drone"), drones, DRONE_FIELDS);
     }
 
     // Equipment Menu
     private static void equipmentMenu() {
-        entityMenu("Equipment", "Equipment serial number", equipment, EQUIPMENT_FIELDS);
+        entityMenu("Equipment", getPkColumnName("Equipment"), equipment, EQUIPMENT_FIELDS);
     }
 
     // Customer Menu
     private static void customerMenu() {
-        entityMenu("Customer", "Customer phone number", customers, CUSTOMER_FIELDS);
+        entityMenu("Customer", getPkColumnName("Customer"), customers, CUSTOMER_FIELDS);
     }
 
     // Purchase Order Menu
     private static void purchaseOrderMenu() {
-        entityMenu("Purchase Order", "Purchase order number", purchaseOrders, PURCHASE_ORDER_FIELDS);
+        entityMenu("Purchase Order", getPkColumnName("PurchaseOrders"), purchaseOrders, PURCHASE_ORDER_FIELDS);
     }
 
     // Rating & Review Menu
     private static void ratingMenu() {
-        entityMenu("Rating", "Rating ID", ratings, RATING_FIELDS);
+        entityMenu("Rating", getPkColumnName("Rating"), ratings, RATING_FIELDS);
     }
 
     private static void rentEquipment() {
