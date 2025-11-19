@@ -1,4 +1,5 @@
 //import hashmap just to temporarily store date before we can create the databases
+import java.sql.PreparedStatement;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -140,7 +141,7 @@ public class InfoSystem {
             int choice = getInt();
             switch (choice) {
                 case 1 -> addRecord(entityName, idLabel, records, fields, entityName);
-                case 2 -> editRecord(entityName, idLabel, records, fields);
+                case 2 -> editRecord(entityName, idLabel, records, fields, entityName);
                 case 3 -> deleteRecord(entityName, idLabel, records);
                 case 4 -> searchRecords(entityName, records, fields);
                 case 5 -> listRecords(entityName, records, fields);
@@ -174,9 +175,8 @@ public class InfoSystem {
                                   String[] fields, String tableName) {
         String id = getNonEmptyLine("Enter " + idLabel + ": ");
 
-        /* TODO this shouldn't be records, it should access the database to check for existing IDs */
-        //checks if the db contains a record with same primary key
-        if (records.containsKey(id)) {
+        /* Check whether the ID already exists. Prefer the in-memory map first, then fall back to the DB. */
+        if (records.containsKey(id) || DatabaseControl.primaryKeyValueExists(tableName, idLabel, id)) {
             System.out.println("A record with that ID already exists.");
             return;
         }
@@ -224,18 +224,20 @@ public class InfoSystem {
 
     /*TODO new implementation */
     private static void editRecord(String entityName,
-                                   String idLabel,
-                                   Map<String, Map<String, String>> records,
-                                   String[] fields) {
+                                  String idLabel,
+                                  Map<String, Map<String, String>> records,
+                                  String[] fields, String tableName) {
         String id = getNonEmptyLine("Enter " + idLabel + " to edit: ");
-        Map<String, String> record = records.get(id);
-        if (record == null) {
-            System.out.println("No record found with that ID.");
+        Map<String, String> record = records.getOrDefault(id, new HashMap<>());
+        if (id == null || !DatabaseControl.primaryKeyValueExists(tableName, idLabel, id)) {
+            System.out.println("No record found with that ID: " + id);
             return;
         }
         while (true) {
             System.out.println("\nCurrent details for " + id + ":");
-            printRecord(id, record, fields);
+
+            //above works so far
+            record = DatabaseControl.printRecord(tableName, id, record, fields);
             System.out.println("Select a field to update (0 to stop):");
             for (int i = 0; i < fields.length; i++) {
                 System.out.println((i + 1) + ". " + fields[i]);
@@ -252,6 +254,9 @@ public class InfoSystem {
             String field = fields[choice - 1];
             System.out.print("Enter new value for " + field + " (leave blank to clear): ");
             String value = sc.nextLine().trim();
+            
+            
+            /*TODO this needs to be sql */
             if (value.isEmpty()) {
                 record.remove(field);
                 System.out.println(field + " cleared.");
@@ -292,7 +297,7 @@ public class InfoSystem {
         boolean found = false;
         for (Map.Entry<String, Map<String, String>> entry : records.entrySet()) {
             if (recordMatches(entry.getKey(), entry.getValue(), fields, term)) {
-                printRecord(entry.getKey(), entry.getValue(), fields);
+                DatabaseControl.printRecord(entityName, entry.getKey(), entry.getValue(), fields);
                 found = true;
             }
         }
@@ -310,20 +315,10 @@ public class InfoSystem {
             return;
         }
         for (Map.Entry<String, Map<String, String>> entry : records.entrySet()) {
-            printRecord(entry.getKey(), entry.getValue(), fields);
+            DatabaseControl.printRecord(entityName, entry.getKey(), entry.getValue(), fields);
         }
     }
 
-    /*TODO new implementation */
-    private static void printRecord(String id,
-                                    Map<String, String> record,
-                                    String[] fields) {
-        System.out.println("\nID: " + id);
-        for (String field : fields) {
-            String value = record.get(field);
-            System.out.println("  " + field + ": " + (value == null || value.isEmpty() ? "(not set)" : value));
-        }
-    }
 
     /*TODO new implementation */
     private static boolean recordMatches(String id,

@@ -78,6 +78,79 @@ public class DatabaseControl {
         return required;
     }
 
+    // Check whether a given value already exists in the primary key column of a table
+    public static boolean primaryKeyValueExists(String tableName, String pkColumn, String value) {
+        if (conn == null) {
+            System.out.println("Database not connected.");
+            return false;
+        }
+        // Use a parameterized query to avoid SQL injection
+        String sql = "SELECT " + pkColumn + " FROM " + tableName + " WHERE " + pkColumn + " = ? LIMIT 1";
+        try (PreparedStatement p = conn.prepareStatement(sql)) {
+            p.setString(1, value);
+            try (ResultSet rs = p.executeQuery()) {
+                return true;
+            }
+        } catch (SQLException e) {
+            System.out.println("Error checking primary key existence: " + e.getMessage());
+            return false;
+        }
+    }
+
+
+    public static Map<String, String> printRecord(String tableName,
+                                    String id,
+                                    Map<String, String> record,
+                                    String[] fields) {
+        if (conn == null) return record;
+        
+        System.out.println("\nID: " + id);
+        
+        // First, try to load the record from database if it's empty
+        //if (record.isEmpty()) {
+            String pkColumnName = getPrimaryKeyColumn(tableName);
+            String sql = "SELECT * FROM " + tableName + " WHERE " + pkColumnName + " = ? LIMIT 1";
+            
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setString(1, id);
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    if (rs.next()) {
+                        // Populate the record map from the result set
+                        for (String field : fields) {
+                            String value = rs.getString(field);
+                            if (value != null) {
+                                record.put(field, value);
+                            }
+                        }
+                    }
+                }
+            } catch (SQLException e) {
+                System.out.println("Error loading record from database: " + e.getMessage());
+            }
+        //}
+        
+        // Print the record
+        for (String field : fields) {
+            String value = record.get(field);
+            System.out.println("  " + field + ": " + (value == null || value.isEmpty() ? "(not set)" : value));
+        }
+        
+        return record;
+    }
+    
+    // Helper to get the primary key column name for a given table
+    private static String getPrimaryKeyColumn(String tableName) {
+        return switch (tableName) {
+            case "Warehouse" -> "WarehouseID";
+            case "Drone" -> "DroneSerialNumber";
+            case "Equipment" -> "EquipmentSerialNumber";
+            case "Customer" -> "UserID";
+            case "PurchaseOrders" -> "OrderNumber";
+            case "Rating" -> "RatingID";
+            default -> "ID";
+        };
+    }
+
 
 
     //insert into a database. Retruns true if data was inserted into the database,
@@ -108,7 +181,7 @@ public class DatabaseControl {
                 pstmt.setString(i+1, record.get(fields[i]));
             }
 
-            //execute the insert
+                //execute the insert
             int rowsInserted = pstmt.executeUpdate();
 
             //check if any rows were inserted so user can be notified that it was added to database
