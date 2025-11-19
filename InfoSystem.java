@@ -164,8 +164,8 @@ public class InfoSystem {
         }
     }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-private static String getPkColumnName(String entityName) {
+    //get the primary key column name for a table in the database
+    private static String getPkColumnName(String entityName) {
         return switch (entityName) {
             case "Warehouse" -> "WarehouseID";
             case "Drone" -> "DroneSerialNumber"; 
@@ -176,15 +176,18 @@ private static String getPkColumnName(String entityName) {
             default -> "ID";
         };
     }
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// this uses hashmaps!! we need it to use the database instead rn
+
+ 
+    //adds a record to the database
     private static void addRecord(String entityName,
                                   String idLabel,
                                   Map<String, Map<String, String>> records,
                                   String[] fields, String tableName) {
         String id = getNonEmptyLine("Enter " + idLabel + ": ");
-/* TODO this shouldn't be records, it should access the database to check for existing IDs */
+
+        /* TODO this shouldn't be records, it should access the database to check for existing IDs */
+        //checks if the db contains a record with same primary key
         if (records.containsKey(id)) {
             System.out.println("A record with that ID already exists.");
             return;
@@ -194,6 +197,7 @@ private static String getPkColumnName(String entityName) {
         Set<String> requiredFields = entityRequirements.getOrDefault(entityName, new HashSet<>());
 
         for (String field : fields) {
+            //checks if this field is the ID and skips it
             if(field.equals(idLabel)) {
                 record.put(field, id);
                 continue;
@@ -220,7 +224,7 @@ private static String getPkColumnName(String entityName) {
             }
         }
         records.put(id, record);
-        //  if DB connected
+        //  runs the insert function from DatabaseControl
         if (DatabaseControl.insertStuff(fields, tableName, record)) {
             System.out.println(entityName + " record created and saved for " + id + ".");
 
@@ -229,6 +233,7 @@ private static String getPkColumnName(String entityName) {
         }
     }
 
+    /*TODO new implementation */
     private static void editRecord(String entityName,
                                    String idLabel,
                                    Map<String, Map<String, String>> records,
@@ -269,6 +274,7 @@ private static String getPkColumnName(String entityName) {
         }
     }
 
+    /*TODO new implementation */
     private static void deleteRecord(String entityName,
                                      String idLabel,
                                      Map<String, Map<String, String>> records) {
@@ -280,6 +286,7 @@ private static String getPkColumnName(String entityName) {
         }
     }
 
+    /*TODO new implementation */
     private static void searchRecords(String entityName,
                                       Map<String, Map<String, String>> records,
                                       String[] fields) {
@@ -305,6 +312,7 @@ private static String getPkColumnName(String entityName) {
         }
     }
 
+    /*TODO new implementation */
     private static void listRecords(String entityName,
                                     Map<String, Map<String, String>> records,
                                     String[] fields) {
@@ -317,6 +325,7 @@ private static String getPkColumnName(String entityName) {
         }
     }
 
+    /*TODO new implementation */
     private static void printRecord(String id,
                                     Map<String, String> record,
                                     String[] fields) {
@@ -327,6 +336,7 @@ private static String getPkColumnName(String entityName) {
         }
     }
 
+    /*TODO new implementation */
     private static boolean recordMatches(String id,
                                          Map<String, String> record,
                                          String[] fields,
