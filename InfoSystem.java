@@ -3,7 +3,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
-class InfoSystem {
+public class InfoSystem {
     private static Scanner sc = new Scanner(System.in);
 
     // just to make sure our program runs,  and edit this later
@@ -15,7 +15,7 @@ class InfoSystem {
     private static Map<String, Map<String, String>> ratings = new HashMap<>();
 
     private static final String[] WAREHOUSE_FIELDS = {
-            "Storage", "Phone number", "Drone capacity", "Manager name", "Address", "City"
+            "Storage", "PhoneNumber",  "WarehouseID", "DroneCapacity", "ManagerName", "Address", "City"
     };
     private static final String[] DRONE_FIELDS = {
             "Max speed", "Manufacturer", "Location", "Active status", "Distance autonomy",
@@ -33,15 +33,15 @@ class InfoSystem {
     private static final String[] RATING_FIELDS = {
             "Review", "Rating"
     };
+    //end of temporary arrays DELETE ALL ABOVE AFTER FINISHING THE DATABASE IMPLEMENTATION!!
 
     public static void main(String[] args) {
-        // Attempt automatic DB connection on startup. Use first CLI arg as JDBC URL if provided.
+ // trying to make an automatic database connection
         String defaultDbUrl = "jdbc:sqlite:checkpoint_four.db";
         String autoUrl = (args != null && args.length > 0 && args[0] != null && !args[0].isEmpty()) ? args[0] : defaultDbUrl;
         System.out.println("Attempting automatic DB connect to: " + autoUrl);
         if (DatabaseControl.connect(autoUrl, null, null)) {
             System.out.println("Auto-connected to database.");
-            // load existing records into memory
             warehouses.clear(); warehouses.putAll(DatabaseControl.loadAllRecords("Warehouse"));
             drones.clear(); drones.putAll(DatabaseControl.loadAllRecords("Drone"));
             equipment.clear(); equipment.putAll(DatabaseControl.loadAllRecords("Equipment"));
@@ -115,9 +115,7 @@ class InfoSystem {
     }
 
     private static void entityMenu(String entityName,
-                                   String idLabel,
-                                   Map<String, Map<String, String>> records,
-                                   String[] fields) {
+            String idLabel,Map<String, Map<String, String>> records, String[] fields) {
         while (true) {
             System.out.println("\n" + entityName + " Menu:");
             System.out.println("1. Add new record");
@@ -142,15 +140,16 @@ class InfoSystem {
         }
     }
 
+// this uses hashmaps!! we need it to use the database instead rn
     private static void addRecord(String entityName,
                                   String idLabel,
                                   Map<String, Map<String, String>> records,
                                   String[] fields) {
         String id = getNonEmptyLine("Enter " + idLabel + ": ");
-        if (records.containsKey(id)) {
+        /*if (records.containsKey(id)) {
             System.out.println("A record with that ID already exists.");
             return;
-        }
+        }*/
         Map<String, String> record = new HashMap<>();
         for (String field : fields) {
             System.out.print("Enter " + field + " (leave blank to skip): ");
@@ -160,9 +159,10 @@ class InfoSystem {
             }
         }
         records.put(id, record);
-        // persist if DB connected
-        if (DatabaseControl.insertStuff(entityName, id, record)) {
+        //  if DB connected
+        if (DatabaseControl.insertStuff(WAREHOUSE_FIELDS, "Warehouse")) {
             System.out.println(entityName + " record created and saved for " + id + ".");
+
         } else {
             System.out.println(entityName + " record created for " + id + ".");
         }

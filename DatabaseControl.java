@@ -6,6 +6,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 
 
@@ -27,28 +28,70 @@ public class DatabaseControl {
     }
 
     //insert into a database
-    public static boolean insertStuff(String entity, String id, Map<String, String> record) {
-        if (conn == null) return false;
-        String ins = "INSERT INTO records(entity,id,field,value) VALUES(?,?,?,?)";
+    public static boolean insertStuff(String[] fields, String tableName) {
+        System.out.println("it works 1");
+        if (conn == null) {
+            System.out.println("Nope");
+            return false;
+        }
+        String fieldscon = "";
+        String values = "";
+        for (int i = 0; i < fields.length; i++) {
+            fieldscon = fieldscon + "," + fields[i];
+            values = values + ",?";
+        }
+        String ins = "INSERT INTO " + tableName + "(" + fieldscon + ") VALUES(" + values + ")";
         boolean anyInserted = false;
-        try (PreparedStatement i = conn.prepareStatement(ins)) {
-            for (Map.Entry<String, String> e : record.entrySet()) {
-                try {
-                    i.setString(1, entity);
-                    i.setString(2, id);
-                    i.setString(3, e.getKey());
-                    i.setString(4, e.getValue());
-                    i.executeUpdate();
+        String dburl = "jdbc:sqlite:checkpoint_four.db";
+        try (/*PreparedStatement i = conn.prepareStatement(ins)*/Connection conn = DriverManager.getConnection(dburl);
+             Statement stmt = conn.createStatement()){
+                System.out.println("it works 2");
+                try(ResultSet rs = stmt.executeQuery(ins)){
+                    rs.getString(1);
+                    rs.getString(2);
+                    rs.getString(3);
+                    rs.getString(4);
                     anyInserted = true;
                     //catch exception, print out error message (untested so far, idk if it works)
+                    System.out.println("it works 3");
+                }catch (SQLException ex) {
+                     System.out.println("Error with inserting record: " + ex.getMessage());
+                }
+                 /*ResultSet rs = stmt.executeQuery(ins) {
+            
+                for (Map.Entry<String, String> e : record.entrySet()) {
+                try {
+                    rs.getString(1);
+                    rs.getString(2);
+                    rs.getString(3);
+                    rs.getString(4);
+                    anyInserted = true;
+                    //catch exception, print out error message (untested so far, idk if it works)
+                    System.out.println("it works 3");
                 } catch (SQLException ex) {
                      System.out.println("Error with inserting record: " + ex.getMessage());
                 }
-            }
-            return anyInserted;
+            }*/
+               return anyInserted;
         } catch (SQLException e) {
             return false;
         }
+
+             /*ResultSet rs = stmt.executeQuery(ins) {
+            
+            for (Map.Entry<String, String> e : record.entrySet()) {
+                try {
+                    rs.getString(1);
+                    rs.getString(2);
+                    rs.getString(3);
+                    rs.getString(4);
+                    anyInserted = true;
+                    //catch exception, print out error message (untested so far, idk if it works)
+                    System.out.println("it works 3");
+                } catch (SQLException ex) {
+                     System.out.println("Error with inserting record: " + ex.getMessage());
+                }
+            }*/
     }
 
     // deleting the record from the database
