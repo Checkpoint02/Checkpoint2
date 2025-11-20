@@ -149,7 +149,7 @@ public class InfoSystem {
                 case 1 -> addRecord(entityName, idLabel, records, fields, entityName);
                 case 2 -> editRecord(entityName, idLabel, records, fields, entityName);
                 case 3 -> deleteRecord(entityName, idLabel, records, entityName);
-                case 4 -> searchRecords(entityName, records, fields);
+                case 4 -> searchRecords(idLabel, entityName, fields);
                 case 5 -> listRecords(entityName, records, fields);
                 case 0 -> {
                     return;
@@ -299,31 +299,59 @@ public class InfoSystem {
         }
     }
 
-    /* TODO new implementation */
-    private static void searchRecords(String entityName,
-            Map<String, Map<String, String>> records,
-            String[] fields) {
-        if (records.isEmpty()) {
-            System.out.println("No " + entityName.toLowerCase() + " records available.");
-            return;
-        }
-        System.out.print("Enter search term (matches ID or field values): ");
-        String term = sc.nextLine().trim();
-        if (term.isEmpty()) {
-            System.out.println("Search term cannot be empty.");
-            return;
-        }
-        boolean found = false;
-        for (Map.Entry<String, Map<String, String>> entry : records.entrySet()) {
-            if (recordMatches(entry.getKey(), entry.getValue(), fields, term)) {
-                DatabaseControl.printRecord(entityName, entry.getKey(), entry.getValue(), fields);
-                found = true;
-            }
-        }
+    private static void searchRecords(String idLabel, String entityName, String[] fields) {
+        // 1. Ask for the ID (Just like deleteRecord)
+        String id = getNonEmptyLine("Enter " + idLabel + " to find: ");
+
+        // 2. Call the database helper
+        boolean found = DatabaseControl.searchstuff(entityName, idLabel, id, fields);
+
+        // 3. Handle the result
         if (!found) {
-            System.out.println("No matching " + entityName.toLowerCase() + " records found.");
+            System.out.println("No record found with that ID: " + id);
         }
     }
+    /* TODO new implementation */
+    // private static void searchRecords(String entityName,
+    // String idLabel,
+    // Map<String, Map<String, String>> records,
+    // String tableName) {
+    // String id = getNonEmptyLine("Enter " + idLabel + " to delete: ");
+    // boolean dbsearch = DatabaseControl.searchstuff(tableName, idLabel, id);
+
+    // if (!dbsearch) {
+    // System.out.println("No " + entityName.toLowerCase() + " records.");
+    // return;
+    // }
+    // for (Map.Entry<String, Map<String, String>> entry : records.entrySet()) {
+    // DatabaseControl.printRecord(entityName, entry.getKey(), entry.getValue(),
+    // fields);
+    // }
+    // }
+
+    // if (records.isEmpty()) {
+    // System.out.println("No " + entityName.toLowerCase() + " records available.");
+    // return;
+    // }
+    // System.out.print("Enter search term (matches ID or field values): ");
+    // String term = sc.nextLine().trim();
+    // if (term.isEmpty()) {
+    // System.out.println("Search term cannot be empty.");
+    // return;
+    // }
+    // boolean found = false;
+    // for (Map.Entry<String, Map<String, String>> entry : records.entrySet()) {
+    // if (recordMatches(entry.getKey(), entry.getValue(), fields, term)) {
+    // DatabaseControl.printRecord(entityName, entry.getKey(), entry.getValue(),
+    // fields);
+    // found = true;
+    // }
+    // }
+    // if (!found) {
+    // System.out.println("No matching " + entityName.toLowerCase() + " records
+    // found.");
+    // }
+    // }
 
     /* TODO new implementation */
     private static void listRecords(String entityName,
@@ -339,22 +367,22 @@ public class InfoSystem {
     }
 
     /* TODO new implementation */
-    private static boolean recordMatches(String id,
-            Map<String, String> record,
-            String[] fields,
-            String term) {
-        String lowerTerm = term.toLowerCase();
-        if (id.toLowerCase().contains(lowerTerm)) {
-            return true;
-        }
-        for (String field : fields) {
-            String value = record.get(field);
-            if (value != null && value.toLowerCase().contains(lowerTerm)) {
-                return true;
-            }
-        }
-        return false;
-    }
+    // private static boolean recordMatches(String id,
+    //         Map<String, String> record,
+    //         String[] fields,
+    //         String term) {
+    //     String lowerTerm = term.toLowerCase();
+    //     if (id.toLowerCase().contains(lowerTerm)) {
+    //         return true;
+    //     }
+    //     for (String field : fields) {
+    //         String value = record.get(field);
+    //         if (value != null && value.toLowerCase().contains(lowerTerm)) {
+    //             return true;
+    //         }
+    //     }
+    //     return false;
+    // }
 
     // Warehouse Menu
     private static void warehouseMenu() {
