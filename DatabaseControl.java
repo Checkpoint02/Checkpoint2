@@ -218,6 +218,37 @@ public class DatabaseControl {
         }
     }
 
+    public static boolean searchstuff(String tableName, String pkColumn, String id, String[] fields) {
+        if (conn == null) {
+            System.out.println("Database not connected.");
+            return false;
+        }
+
+        String sql = "SELECT * FROM " + tableName + " WHERE " + pkColumn + " = ?";
+
+        try (PreparedStatement p = conn.prepareStatement(sql)) {
+            p.setString(1, id);
+
+            try (ResultSet rs = p.executeQuery()) {
+                if (rs.next()) {
+                    for (String field : fields) {
+                        String value = rs.getString(field);
+                        // Handle null values gracefully
+                        if (value == null)
+                            value = "[NULL]";
+                        System.out.println(field + ": " + value);
+                    }
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error searching for record: " + e.getMessage());
+            return false;
+        }
+    }
+
     // insert for the delivery things, can someone check if delivery date should be
     // an int instead
     public static boolean insertDelivery(String customerId, String equipmentId, String deliveryDate,
