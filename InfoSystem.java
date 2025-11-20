@@ -1,5 +1,5 @@
+
 //import hashmap just to temporarily store date before we can create the databases
-import java.sql.PreparedStatement;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -9,7 +9,7 @@ import java.util.Set;
 public class InfoSystem {
     private static Scanner sc = new Scanner(System.in);
 
-    // just to make sure our program runs,  and edit this later
+    // just to make sure our program runs, and edit this later
     private static Map<String, Map<String, String>> warehouses = new HashMap<>();
     private static Map<String, Map<String, String>> drones = new HashMap<>();
     private static Map<String, Map<String, String>> equipment = new HashMap<>();
@@ -27,20 +27,27 @@ public class InfoSystem {
     private static String[] RATING_FIELDS = {};
 
     public static void main(String[] args) {
- // trying to make an automatic database connection
+        // trying to make an automatic database connection
         String defaultDbUrl = "jdbc:sqlite:checkpoint_four.db";
-        String autoUrl = (args != null && args.length > 0 && args[0] != null && !args[0].isEmpty()) ? args[0] : defaultDbUrl;
+        String autoUrl = (args != null && args.length > 0 && args[0] != null && !args[0].isEmpty()) ? args[0]
+                : defaultDbUrl;
         System.out.println("Attempting automatic DB connect to: " + autoUrl);
         if (DatabaseControl.connect(autoUrl, null, null)) {
             System.out.println("Auto-connected to database.");
-           /*warehouses.clear(); warehouses.putAll(DatabaseControl.loadAllRecords("Warehouse"));
-            drones.clear(); drones.putAll(DatabaseControl.loadAllRecords("Drone"));
-            equipment.clear(); equipment.putAll(DatabaseControl.loadAllRecords("Equipment"));
-            customers.clear(); customers.putAll(DatabaseControl.loadAllRecords("Customer"));
-            purchaseOrders.clear(); purchaseOrders.putAll(DatabaseControl.loadAllRecords("Purchase Order"));
-            ratings.clear(); ratings.putAll(DatabaseControl.loadAllRecords("Rating"));*/
+            /*
+             * warehouses.clear();
+             * warehouses.putAll(DatabaseControl.loadAllRecords("Warehouse"));
+             * drones.clear(); drones.putAll(DatabaseControl.loadAllRecords("Drone"));
+             * equipment.clear();
+             * equipment.putAll(DatabaseControl.loadAllRecords("Equipment"));
+             * customers.clear();
+             * customers.putAll(DatabaseControl.loadAllRecords("Customer"));
+             * purchaseOrders.clear();
+             * purchaseOrders.putAll(DatabaseControl.loadAllRecords("Purchase Order"));
+             * ratings.clear(); ratings.putAll(DatabaseControl.loadAllRecords("Rating"));
+             */
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
             WAREHOUSE_FIELDS = DatabaseControl.getColumnNames("Warehouse");
             DRONE_FIELDS = DatabaseControl.getColumnNames("Drone");
@@ -50,17 +57,17 @@ public class InfoSystem {
             RATING_FIELDS = DatabaseControl.getColumnNames("Rating");
 
             System.out.println("Loading column names and constraints...");
-    
-    // 1. Load Names (You already have this)
-    // ... other fields ...
 
-    // 2. Load Requirements (ADD THIS)
-    entityRequirements.put("Warehouse", DatabaseControl.getRequiredColumns("Warehouse"));
-    entityRequirements.put("Drone", DatabaseControl.getRequiredColumns("Drone"));
-    entityRequirements.put("Equipment", DatabaseControl.getRequiredColumns("Equipment"));
-    entityRequirements.put("Customer", DatabaseControl.getRequiredColumns("Customer"));
-    entityRequirements.put("PurchaseOrders", DatabaseControl.getRequiredColumns("PurchaseOrders"));
-    entityRequirements.put("Rating", DatabaseControl.getRequiredColumns("Rating"));
+            // 1. Load Names (You already have this)
+            // ... other fields ...
+
+            // 2. Load Requirements (ADD THIS)
+            entityRequirements.put("Warehouse", DatabaseControl.getRequiredColumns("Warehouse"));
+            entityRequirements.put("Drone", DatabaseControl.getRequiredColumns("Drone"));
+            entityRequirements.put("Equipment", DatabaseControl.getRequiredColumns("Equipment"));
+            entityRequirements.put("Customer", DatabaseControl.getRequiredColumns("Customer"));
+            entityRequirements.put("PurchaseOrders", DatabaseControl.getRequiredColumns("PurchaseOrders"));
+            entityRequirements.put("Rating", DatabaseControl.getRequiredColumns("Rating"));
         } else {
             System.out.println("Auto-connect failed (continuing without DB). Use menu option 12 to connect manually.");
         }
@@ -105,7 +112,6 @@ public class InfoSystem {
         }
     }
 
-
     private static int getInt() {
         while (true) {
             try {
@@ -128,7 +134,7 @@ public class InfoSystem {
     }
 
     private static void entityMenu(String entityName,
-            String idLabel,Map<String, Map<String, String>> records, String[] fields) {
+            String idLabel, Map<String, Map<String, String>> records, String[] fields) {
         while (true) {
             System.out.println("\n" + entityName + " Menu:");
             System.out.println("1. Add new record");
@@ -153,11 +159,11 @@ public class InfoSystem {
         }
     }
 
-    //get the primary key column name for a table in the database
+    // get the primary key column name for a table in the database
     private static String getPkColumnName(String entityName) {
         return switch (entityName) {
             case "Warehouse" -> "WarehouseID";
-            case "Drone" -> "DroneSerialNumber"; 
+            case "Drone" -> "DroneSerialNumber";
             case "Equipment" -> "EquipmentSerialNumber";
             case "Customer" -> "UserID";
             case "PurchaseOrders" -> "OrderNumber";
@@ -166,16 +172,17 @@ public class InfoSystem {
         };
     }
 
-
- 
-    //adds a record to the database
+    // adds a record to the database
     private static void addRecord(String entityName,
-                                  String idLabel,
-                                  Map<String, Map<String, String>> records,
-                                  String[] fields, String tableName) {
+            String idLabel,
+            Map<String, Map<String, String>> records,
+            String[] fields, String tableName) {
         String id = getNonEmptyLine("Enter " + idLabel + ": ");
 
-        /* Check whether the ID already exists. Prefer the in-memory map first, then fall back to the DB. */
+        /*
+         * Check whether the ID already exists. Prefer the in-memory map first, then
+         * fall back to the DB.
+         */
         if (records.containsKey(id) || DatabaseControl.primaryKeyValueExists(tableName, idLabel, id)) {
             System.out.println("A record with that ID already exists.");
             return;
@@ -185,8 +192,8 @@ public class InfoSystem {
         Set<String> requiredFields = entityRequirements.getOrDefault(entityName, new HashSet<>());
 
         for (String field : fields) {
-            //checks if this field is the ID and skips it
-            if(field.equals(idLabel)) {
+            // checks if this field is the ID and skips it
+            if (field.equals(idLabel)) {
                 record.put(field, id);
                 continue;
             }
@@ -211,9 +218,9 @@ public class InfoSystem {
                 }
             }
         }
-        
+
         records.put(id, record);
-        //  runs the insert function from DatabaseControl
+        // runs the insert function from DatabaseControl
         if (DatabaseControl.insertStuff(fields, tableName, record)) {
             System.out.println(entityName + " record created and saved for " + id + ".");
 
@@ -222,11 +229,11 @@ public class InfoSystem {
         }
     }
 
-    /*TODO new implementation */
+    /* TODO new implementation */
     private static void editRecord(String entityName,
-                                  String idLabel,
-                                  Map<String, Map<String, String>> records,
-                                  String[] fields, String tableName) {
+            String idLabel,
+            Map<String, Map<String, String>> records,
+            String[] fields, String tableName) {
         String id = getNonEmptyLine("Enter " + idLabel + " to edit: ");
         Map<String, String> record = records.getOrDefault(id, new HashMap<>());
         if (id == null || !DatabaseControl.primaryKeyValueExists(tableName, idLabel, id)) {
@@ -236,7 +243,7 @@ public class InfoSystem {
         while (true) {
             System.out.println("\nCurrent details for " + id + ":");
 
-            //above works so far
+            // above works so far
             record = DatabaseControl.printRecord(tableName, id, record, fields);
             System.out.println("Select a field to update (0 to stop):");
             for (int i = 0; i < fields.length; i++) {
@@ -254,9 +261,9 @@ public class InfoSystem {
             String field = fields[choice - 1];
             System.out.print("Enter new value for " + field + " (leave blank to clear): ");
             String value = sc.nextLine().trim();
-            
-            
-            /*TODO this needs to be sql */
+
+            DatabaseControl.updateField(tableName, idLabel, id, field, value);
+
             if (value.isEmpty()) {
                 record.remove(field);
                 System.out.println(field + " cleared.");
@@ -268,10 +275,10 @@ public class InfoSystem {
         }
     }
 
-    /*TODO new implementation */
+    /* TODO new implementation */
     private static void deleteRecord(String entityName,
-                                     String idLabel,
-                                     Map<String, Map<String, String>> records) {
+            String idLabel,
+            Map<String, Map<String, String>> records) {
         String id = getNonEmptyLine("Enter " + idLabel + " to delete: ");
         if (records.remove(id) != null) {
             System.out.println(entityName + " record deleted for " + id + ".");
@@ -280,10 +287,10 @@ public class InfoSystem {
         }
     }
 
-    /*TODO new implementation */
+    /* TODO new implementation */
     private static void searchRecords(String entityName,
-                                      Map<String, Map<String, String>> records,
-                                      String[] fields) {
+            Map<String, Map<String, String>> records,
+            String[] fields) {
         if (records.isEmpty()) {
             System.out.println("No " + entityName.toLowerCase() + " records available.");
             return;
@@ -306,10 +313,10 @@ public class InfoSystem {
         }
     }
 
-    /*TODO new implementation */
+    /* TODO new implementation */
     private static void listRecords(String entityName,
-                                    Map<String, Map<String, String>> records,
-                                    String[] fields) {
+            Map<String, Map<String, String>> records,
+            String[] fields) {
         if (records.isEmpty()) {
             System.out.println("No " + entityName.toLowerCase() + " records available.");
             return;
@@ -319,12 +326,11 @@ public class InfoSystem {
         }
     }
 
-
-    /*TODO new implementation */
+    /* TODO new implementation */
     private static boolean recordMatches(String id,
-                                         Map<String, String> record,
-                                         String[] fields,
-                                         String term) {
+            Map<String, String> record,
+            String[] fields,
+            String term) {
         String lowerTerm = term.toLowerCase();
         if (id.toLowerCase().contains(lowerTerm)) {
             return true;
@@ -337,8 +343,6 @@ public class InfoSystem {
         }
         return false;
     }
-
-
 
     // Warehouse Menu
     private static void warehouseMenu() {
@@ -408,12 +412,14 @@ public class InfoSystem {
         String deliveryWindow = getNonEmptyLine("Enter delivery time window: ");
         String droneId = getNonEmptyLine("Enter assigned drone ID: ");
 
-        boolean ok = DatabaseControl.insertDeliveryTransactional(customerId, equipmentId, deliveryDate, deliveryWindow, droneId, "Scheduled");
+        boolean ok = DatabaseControl.insertDeliveryTransactional(customerId, equipmentId, deliveryDate, deliveryWindow,
+                droneId, "Scheduled");
         if (ok) {
             // update equipment status in memory
             Map<String, String> eq = equipment.computeIfAbsent(equipmentId, k -> new HashMap<>());
             eq.put("Status", "Out for delivery");
-            System.out.println("\nDelivery scheduled and saved for customer " + customerId + " and equipment " + equipmentId + ".");
+            System.out.println("\nDelivery scheduled and saved for customer " + customerId + " and equipment "
+                    + equipmentId + ".");
             System.out.println("Delivery date: " + deliveryDate);
             System.out.println("Delivery window: " + deliveryWindow);
             System.out.println("Assigned drone: " + droneId);
@@ -453,62 +459,63 @@ public class InfoSystem {
 
         int choice = getInt();
         try {
-                switch (choice) {
-                    case 1 -> {
-                        // Placeholder for future report
-                        System.out.println("Insert name of customer for renting checkout report:");
-                        String customerName = sc.nextLine().trim();
-                        ReportGenerator.rentingCheckouts(dburl, customerName);
-                    }
-                    case 2 -> {
-                        ReportGenerator.popularItem(dburl);
-                    }
-                    case 3 -> {
-                        ReportGenerator.popularManufacturer(dburl);
-                    }
-                    case 4 -> {
-                        ReportGenerator.showPopularDroneReport(dburl);
-                    }
-                    case 5 -> {
-                        ReportGenerator.showFrequentRenterReport(dburl);
-                    }
-                    case 6 -> {
-                        // Choose the Type from the set
-                        System.out.println("\nSelect Equipment Type:");
-                        System.out.println("1. Mechanical");
-                        System.out.println("2. Electrical");
-                        System.out.println("3. Hydraulic");
-                        System.out.println("4. Pneumatic");
-                        System.out.print("Enter choice: ");
-                        int typeChoice = getInt();
-                        
-                        String selectedType = switch (typeChoice) {
-                            case 1 -> "Mechanical";
-                            case 2 -> "Electrical";
-                            case 3 -> "Hydraulic";
-                            case 4 -> "Pneumatic";
-                            default -> null;
-                        };
-
-                        if (selectedType == null) {
-                            System.out.println("Invalid selection of type.");
-                            break;
-                        }
-                        System.out.print("Enter maximum year (e.g. 2020): ");
-                        int year = getInt();
-
-                        // Step C: Run Report
-                        ReportGenerator.showEquipmentByTypeAndMaxYear(dburl, selectedType, year);
-                    }
-                    case 0 -> {
-                        return;
-                    }
-                    default -> System.out.println("Invalid choice. Please select a number from the menu.");
+            switch (choice) {
+                case 1 -> {
+                    // Placeholder for future report
+                    System.out.println("Insert name of customer for renting checkout report:");
+                    String customerName = sc.nextLine().trim();
+                    ReportGenerator.rentingCheckouts(dburl, customerName);
                 }
-            } catch (Exception e) {
-                System.out.println("Error: " + e.getMessage());
+                case 2 -> {
+                    ReportGenerator.popularItem(dburl);
+                }
+                case 3 -> {
+                    ReportGenerator.popularManufacturer(dburl);
+                }
+                case 4 -> {
+                    ReportGenerator.showPopularDroneReport(dburl);
+                }
+                case 5 -> {
+                    ReportGenerator.showFrequentRenterReport(dburl);
+                }
+                case 6 -> {
+                    // Choose the Type from the set
+                    System.out.println("\nSelect Equipment Type:");
+                    System.out.println("1. Mechanical");
+                    System.out.println("2. Electrical");
+                    System.out.println("3. Hydraulic");
+                    System.out.println("4. Pneumatic");
+                    System.out.print("Enter choice: ");
+                    int typeChoice = getInt();
+
+                    String selectedType = switch (typeChoice) {
+                        case 1 -> "Mechanical";
+                        case 2 -> "Electrical";
+                        case 3 -> "Hydraulic";
+                        case 4 -> "Pneumatic";
+                        default -> null;
+                    };
+
+                    if (selectedType == null) {
+                        System.out.println("Invalid selection of type.");
+                        break;
+                    }
+                    System.out.print("Enter maximum year (e.g. 2020): ");
+                    int year = getInt();
+
+                    // Step C: Run Report
+                    ReportGenerator.showEquipmentByTypeAndMaxYear(dburl, selectedType, year);
+                }
+                case 0 -> {
+                    return;
+                }
+                default -> System.out.println("Invalid choice. Please select a number from the menu.");
             }
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
     }
+
     // Minimal DB connect menu
     private static void dbConnectMenu() {
         System.out.println("\nDatabase Connection");
@@ -520,14 +527,21 @@ public class InfoSystem {
         if (DatabaseControl.connect(url, user.isEmpty() ? null : user, pass.isEmpty() ? null : pass)) {
             System.out.println("Connected to database.");
             // load existing records into memory
-            warehouses.clear(); warehouses.putAll(DatabaseControl.loadAllRecords("Warehouse"));
-            drones.clear(); drones.putAll(DatabaseControl.loadAllRecords("Drone"));
-            equipment.clear(); equipment.putAll(DatabaseControl.loadAllRecords("Equipment"));
-            customers.clear(); customers.putAll(DatabaseControl.loadAllRecords("Customer"));
-            purchaseOrders.clear(); purchaseOrders.putAll(DatabaseControl.loadAllRecords("PurchaseOrders"));
-            ratings.clear(); ratings.putAll(DatabaseControl.loadAllRecords("Rating"));
+            warehouses.clear();
+            warehouses.putAll(DatabaseControl.loadAllRecords("Warehouse"));
+            drones.clear();
+            drones.putAll(DatabaseControl.loadAllRecords("Drone"));
+            equipment.clear();
+            equipment.putAll(DatabaseControl.loadAllRecords("Equipment"));
+            customers.clear();
+            customers.putAll(DatabaseControl.loadAllRecords("Customer"));
+            purchaseOrders.clear();
+            purchaseOrders.putAll(DatabaseControl.loadAllRecords("PurchaseOrders"));
+            ratings.clear();
+            ratings.putAll(DatabaseControl.loadAllRecords("Rating"));
         } else {
-            System.out.println("Failed to connect to database. Make sure JDBC driver is on classpath and URL is correct.");
+            System.out.println(
+                    "Failed to connect to database. Make sure JDBC driver is on classpath and URL is correct.");
         }
     }
 }
