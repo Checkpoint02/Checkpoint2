@@ -368,20 +368,20 @@ public class InfoSystem {
 
     /* TODO new implementation */
     // private static boolean recordMatches(String id,
-    //         Map<String, String> record,
-    //         String[] fields,
-    //         String term) {
-    //     String lowerTerm = term.toLowerCase();
-    //     if (id.toLowerCase().contains(lowerTerm)) {
-    //         return true;
-    //     }
-    //     for (String field : fields) {
-    //         String value = record.get(field);
-    //         if (value != null && value.toLowerCase().contains(lowerTerm)) {
-    //             return true;
-    //         }
-    //     }
-    //     return false;
+    // Map<String, String> record,
+    // String[] fields,
+    // String term) {
+    // String lowerTerm = term.toLowerCase();
+    // if (id.toLowerCase().contains(lowerTerm)) {
+    // return true;
+    // }
+    // for (String field : fields) {
+    // String value = record.get(field);
+    // if (value != null && value.toLowerCase().contains(lowerTerm)) {
+    // return true;
+    // }
+    // }
+    // return false;
     // }
 
     // Warehouse Menu
@@ -415,35 +415,51 @@ public class InfoSystem {
     }
 
     private static void rentEquipment() {
-        System.out.println("\nRent Equipment");
-        String customerId = getNonEmptyLine("Enter customer ID: ");
-        String equipmentId = getNonEmptyLine("Enter equipment ID: ");
-        String rentalStart = getNonEmptyLine("Enter rental start date (YYYY-MM-DD): ");
-        String expectedReturn = getNonEmptyLine("Enter expected return date (YYYY-MM-DD): ");
-        String pickupMethod = getNonEmptyLine("Enter pickup method (in-person/drone delivery): ");
+        System.out.println("\n--- Rent Equipment ---");
+        String userId = getNonEmptyLine("Enter User ID (Required): ");
+        String equipSerial = getNonEmptyLine("Enter Equipment Serial Number (Required): ");
+        String droneSerial = getNonEmptyLine("Enter Drone Serial Number (Required): ");
+        String due = getNonEmptyLine("Enter Due Date (YYYY-MM-DD) (Required): ");
+        System.out.print("Enter Checkout Date (YYYY-MM-DD) (Press Enter to skip): ");
+        String checkout = sc.nextLine().trim();
+        System.out.print("Enter Daily Cost (e.g., 15.50) (Press Enter to skip): ");
+        String dailyCost = sc.nextLine().trim();
+        System.out.print("Enter Fees (e.g., 5.00) (Press Enter to skip): ");
+        String fees = sc.nextLine().trim();
+        boolean success = DatabaseControl.insertRental(userId, due, equipSerial, droneSerial, checkout, dailyCost,
+                fees);
 
-        System.out.println("\nRental created for customer " + customerId
-                + " and equipment " + equipmentId + ".");
-        System.out.println("Start date: " + rentalStart);
-        System.out.println("Expected return: " + expectedReturn);
-        System.out.println("Pickup method: " + pickupMethod);
-        System.out.println("Equipment rented.");
+        if (success) {
+            System.out.println("\n*** Rental Created Successfully ***");
+            System.out.println("Customer ID: " + userId);
+            System.out.println("Equipment:   " + equipSerial);
+            System.out.println("Drone Deliv: " + droneSerial);
+            System.out.println("Due Date:    " + due);
+
+            // Handle optional fields for display
+            String displayCheckout = checkout.isEmpty() ? "[Not set]" : checkout;
+            String displayCost = dailyCost.isEmpty() ? "[Not set]" : "$" + dailyCost;
+
+            System.out.println("Checkout:    " + displayCheckout);
+            System.out.println("Daily Cost:  " + displayCost);
+            System.out.println("-----------------------------------");
+        } else {
+            System.out.println("Rental failed. Please check the inputs and try again.");
+        }
     }
-
+    //Under developed, just interface -------------
     private static void returnEquipment() {
-        System.out.println("\nReturn Equipment");
-        String customerId = getNonEmptyLine("Enter customer ID: ");
-        String equipmentId = getNonEmptyLine("Enter equipment ID: ");
-        String returnDate = getNonEmptyLine("Enter return date (YYYY-MM-DD): ");
-        String condition = getNonEmptyLine("Enter equipment condition on return: ");
+        System.out.println("\n--- Return Equipment ---");
+        String userId = getNonEmptyLine("Enter User ID (Required): ");
+        String equipSerial = getNonEmptyLine("Enter Equipment Serial Number (Required): ");
+        String date_return = getNonEmptyLine("Enter Return Date (YYYY-MM-DD) (Required): ");
 
-        System.out.println("\nReturn recorded for customer " + customerId
-                + " and equipment " + equipmentId + ".");
-        System.out.println("Return date: " + returnDate);
-        System.out.println("Condition: " + condition);
+        System.out.println("\nReturn recorded for customer " + userId
+                + " and equipment " + equipSerial + ".");
+        System.out.println("Return date: " + date_return);
         System.out.println("Equipment returned.");
     }
-
+    //Under developed, just interface
     private static void scheduleDelivery() {
         System.out.println("\nSchedule Equipment Delivery");
         String customerId = getNonEmptyLine("Enter customer ID: ");
@@ -452,22 +468,32 @@ public class InfoSystem {
         String deliveryWindow = getNonEmptyLine("Enter delivery time window: ");
         String droneId = getNonEmptyLine("Enter assigned drone ID: ");
 
-        boolean ok = DatabaseControl.insertDeliveryTransactional(customerId, equipmentId, deliveryDate, deliveryWindow,
-                droneId, "Scheduled");
-        if (ok) {
-            // update equipment status in memory
-            Map<String, String> eq = equipment.computeIfAbsent(equipmentId, k -> new HashMap<>());
-            eq.put("Status", "Out for delivery");
-            System.out.println("\nDelivery scheduled and saved for customer " + customerId + " and equipment "
-                    + equipmentId + ".");
-            System.out.println("Delivery date: " + deliveryDate);
-            System.out.println("Delivery window: " + deliveryWindow);
-            System.out.println("Assigned drone: " + droneId);
-        } else {
-            System.out.println("Failed to schedule delivery (DB not connected or error). Delivery not saved.");
-        }
-    }
+        System.out.println("\nDelivery scheduled and saved for customer " + customerId + " and equipment "
+                + equipmentId + ".");
+        System.out.println("Delivery date: " + deliveryDate);
+        System.out.println("Delivery window: " + deliveryWindow);
+        System.out.println("Assigned drone: " + droneId);
 
+        // boolean ok = DatabaseControl.insertDeliveryTransactional(customerId,
+        // equipmentId, deliveryDate, deliveryWindow,
+        // droneId, "Scheduled");
+        // if (ok) {
+        // // update equipment status in memory
+        // Map<String, String> eq = equipment.computeIfAbsent(equipmentId, k -> new
+        // HashMap<>());
+        // eq.put("Status", "Out for delivery");
+        // System.out.println("\nDelivery scheduled and saved for customer " +
+        // customerId + " and equipment "
+        // + equipmentId + ".");
+        // System.out.println("Delivery date: " + deliveryDate);
+        // System.out.println("Delivery window: " + deliveryWindow);
+        // System.out.println("Assigned drone: " + droneId);
+        // } else {
+        // System.out.println("Failed to schedule delivery (DB not connected or error).
+        // Delivery not saved.");
+        // }
+    }
+    //Under developed, just interface
     private static void schedulePickup() {
         System.out.println("\nSchedule Equipment Pickup");
         String customerId = getNonEmptyLine("Enter customer ID: ");
@@ -483,7 +509,7 @@ public class InfoSystem {
         System.out.println("Assigned drone: " + droneId);
         System.out.println("Equipment pickup scheduled.");
     }
-
+//------------------
     private static void usefulReportsMenu() {
         String dburl = "jdbc:sqlite:checkpoint_four.db";
 

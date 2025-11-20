@@ -249,6 +249,46 @@ public class DatabaseControl {
         }
     }
 
+    public static boolean insertRental(String userId, String dueDate, String equipSerial,
+            String droneSerial, String checkoutDate,
+            String dailyCost, String fees) {
+        if (conn == null) {
+            System.out.println("Database not connected.");
+            return false;
+        }
+
+        String sql = "INSERT INTO Rentals (UserID, Due, EquipmentSerialNumber, DroneSerialNumber, " +
+                "RentalCheckOuts, DailyCost, Fees) VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+        try (PreparedStatement p = conn.prepareStatement(sql)) {
+            p.setString(1, userId);
+
+            try {
+                p.setDate(2, java.sql.Date.valueOf(dueDate));
+            } catch (IllegalArgumentException e) {
+                System.out.println("Invalid Due Date format. Operation cancelled.");
+                return false;
+            }
+
+            p.setString(3, equipSerial);
+            p.setString(4, droneSerial);
+
+            // Execute and return result
+            int rows = p.executeUpdate();
+            if (rows > 0) {
+                System.out.println("Rental created successfully!");
+                return true;
+            } else {
+                return false;
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error creating rental: " + e.getMessage());
+            return false;
+        }
+    }
+
+    // -------//
     // insert for the delivery things, can someone check if delivery date should be
     // an int instead
     public static boolean insertDelivery(String customerId, String equipmentId, String deliveryDate,
