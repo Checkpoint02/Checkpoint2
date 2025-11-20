@@ -203,16 +203,17 @@ public class DatabaseControl {
     // deleting the record from the database
     // uses prepared statements to prevent sql injection (make sure to write this
     // for the analysis)
-    public static boolean deleteRecord(String entity, String id) {
+
+    public static boolean deletestuff(String tableName, String pkColumn, String id) {
         if (conn == null)
             return false;
-        String del = "DELETE FROM records WHERE entity = ? AND id = ?";
-        try (PreparedStatement d = conn.prepareStatement(del)) {
-            d.setString(1, entity);
-            d.setString(2, id);
-            d.executeUpdate();
-            return true;
+        String sql = "DELETE FROM " + tableName + " WHERE " + pkColumn + " = ?";
+        try (PreparedStatement p = conn.prepareStatement(sql)) {
+            p.setString(1, id);
+            int rowsAffected = p.executeUpdate();
+            return rowsAffected > 0;
         } catch (SQLException e) {
+            System.out.println("Error deleting record: " + e.getMessage());
             return false;
         }
     }
@@ -341,29 +342,30 @@ public class DatabaseControl {
         }
     }
 
-    // public static boolean updateRecordField(String entity, String id, String field, String value) {
-    //     if (conn == null)
-    //         return false;
+    // public static boolean updateRecordField(String entity, String id, String
+    // field, String value) {
+    // if (conn == null)
+    // return false;
 
-    //     String del = "DELETE FROM records WHERE entity = ? AND id = ? AND field = ?";
-    //     String ins = "INSERT INTO records(entity,id,field,value) VALUES(?,?,?,?)";
-    //     try (PreparedStatement d = conn.prepareStatement(del)) {
-    //         d.setString(1, entity);
-    //         d.setString(2, id);
-    //         d.setString(3, field);
-    //         d.executeUpdate();
-    //     } catch (SQLException ignored) {
-    //     }
-    //     try (PreparedStatement i = conn.prepareStatement(ins)) {
-    //         i.setString(1, entity);
-    //         i.setString(2, id);
-    //         i.setString(3, field);
-    //         i.setString(4, value);
-    //         i.executeUpdate();
-    //         return true;
+    // String del = "DELETE FROM records WHERE entity = ? AND id = ? AND field = ?";
+    // String ins = "INSERT INTO records(entity,id,field,value) VALUES(?,?,?,?)";
+    // try (PreparedStatement d = conn.prepareStatement(del)) {
+    // d.setString(1, entity);
+    // d.setString(2, id);
+    // d.setString(3, field);
+    // d.executeUpdate();
+    // } catch (SQLException ignored) {
+    // }
+    // try (PreparedStatement i = conn.prepareStatement(ins)) {
+    // i.setString(1, entity);
+    // i.setString(2, id);
+    // i.setString(3, field);
+    // i.setString(4, value);
+    // i.executeUpdate();
+    // return true;
 
-    //     } catch (SQLException e) {
-    //         return false;
-    //     }
+    // } catch (SQLException e) {
+    // return false;
+    // }
     // }
 }

@@ -148,7 +148,7 @@ public class InfoSystem {
             switch (choice) {
                 case 1 -> addRecord(entityName, idLabel, records, fields, entityName);
                 case 2 -> editRecord(entityName, idLabel, records, fields, entityName);
-                case 3 -> deleteRecord(entityName, idLabel, records);
+                case 3 -> deleteRecord(entityName, idLabel, records, entityName);
                 case 4 -> searchRecords(entityName, records, fields);
                 case 5 -> listRecords(entityName, records, fields);
                 case 0 -> {
@@ -275,15 +275,27 @@ public class InfoSystem {
         }
     }
 
-    /* TODO new implementation */
     private static void deleteRecord(String entityName,
             String idLabel,
-            Map<String, Map<String, String>> records) {
+            Map<String, Map<String, String>> records,
+            String tableName) {
         String id = getNonEmptyLine("Enter " + idLabel + " to delete: ");
-        if (records.remove(id) != null) {
-            System.out.println(entityName + " record deleted for " + id + ".");
+
+        // 1. Try to delete from the Database first
+        boolean dbSuccess = DatabaseControl.deletestuff(tableName, idLabel, id);
+
+        // 2. If successful (or if you want to force sync), remove from Local Map
+        if (dbSuccess) {
+            records.remove(id);
+            System.out.println(entityName + " record deleted successfully.");
         } else {
-            System.out.println("No record found with that ID.");
+            // Optional: Check if it existed in the map anyway (phantom data)
+            if (records.containsKey(id)) {
+                records.remove(id);
+                System.out.println("Record removed from memory (was not found in DB).");
+            } else {
+                System.out.println("No record found with that ID.");
+            }
         }
     }
 
