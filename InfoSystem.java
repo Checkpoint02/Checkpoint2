@@ -1,5 +1,6 @@
 
 //import hashmap just to temporarily store date before we can create the databases
+import java.sql.ResultSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -361,9 +362,12 @@ public class InfoSystem {
             System.out.println("No " + entityName.toLowerCase() + " records available.");
             return;
         }
+        int numAtt = DatabaseControl.numberAttributes(entityName);
+
+        //this doesn't work? only iterates over values inserted via java program in that instance
         for (Map.Entry<String, Map<String, String>> entry : records.entrySet()) {
             DatabaseControl.printRecord(entityName, entry.getKey(), entry.getValue(), fields);
-        }
+    } 
     }
 
     /* TODO new implementation */
