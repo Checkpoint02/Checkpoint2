@@ -451,8 +451,10 @@ public class InfoSystem {
             System.out.println("Rental failed. Please check the inputs and try again.");
         }
     }
-    //Under developed, just interface -------------
+
+    // Under developed, just interface -------------
     private static void returnEquipment() {
+        System.out.println("\n(Still under development...)");
         System.out.println("\n--- Return Equipment ---");
         String userId = getNonEmptyLine("Enter User ID (Required): ");
         String equipSerial = getNonEmptyLine("Enter Equipment Serial Number (Required): ");
@@ -463,8 +465,10 @@ public class InfoSystem {
         System.out.println("Return date: " + date_return);
         System.out.println("Equipment returned.");
     }
-    //Under developed, just interface
+
+    // Under developed, just interface
     private static void scheduleDelivery() {
+        System.out.println("\n(Still under development...)");
         System.out.println("\nSchedule Equipment Delivery");
         String customerId = getNonEmptyLine("Enter customer ID: ");
         String equipmentId = getNonEmptyLine("Enter equipment ID: ");
@@ -497,8 +501,10 @@ public class InfoSystem {
         // Delivery not saved.");
         // }
     }
-    //Under developed, just interface
+
+    // Under developed, just interface
     private static void schedulePickup() {
+        System.out.println("\n(Still under development...)");
         System.out.println("\nSchedule Equipment Pickup");
         String customerId = getNonEmptyLine("Enter customer ID: ");
         String equipmentId = getNonEmptyLine("Enter equipment ID: ");
@@ -513,7 +519,8 @@ public class InfoSystem {
         System.out.println("Assigned drone: " + droneId);
         System.out.println("Equipment pickup scheduled.");
     }
-//------------------
+
+    // ------------------
     private static void usefulReportsMenu() {
         String dburl = "jdbc:sqlite:checkpoint_four.db";
 
