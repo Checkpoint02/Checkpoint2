@@ -257,21 +257,35 @@ public class DatabaseControl {
             return false;
         }
 
-        String sql = "INSERT INTO Rentals (UserID, Due, EquipmentSerialNumber, DroneSerialNumber, " +
-                "RentalCheckOuts, DailyCost, Fees) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO Rentals  VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement p = conn.prepareStatement(sql)) {
-            p.setString(1, userId);
+            p.setString(2, userId);
+            //Need to get the next rental number. Also in our data the attributes are accidentally part of the database as values
+            //and every time I try to remove it sqlstudio crashes, so I have to get the top 2 and use the second one
+            String getRentalNumber = "SELECT RentalNumber FROM Rentals ORDER BY RentalNumber DESC LIMIT 2";
+            ResultSet rs = conn.prepareStatement(getRentalNumber).executeQuery();
+            rs.next();
+            rs.next();
+            String rentalNumber = rs.getString(1);
+            System.out.println("rental number is: " + rentalNumber);
+            int rentalNum = Integer.parseInt(rentalNumber.substring(1)) + 1;
+            rentalNumber = "R0" + rentalNum;
+            p.setString(1, rentalNumber);
 
             try {
-                p.setDate(2, java.sql.Date.valueOf(dueDate));
+               // p.setDate(2, java.sql.Date.valueOf(dueDate));
+                p.setString(3, dueDate);
+                p.setString(6, checkoutDate);
             } catch (IllegalArgumentException e) {
                 System.out.println("Invalid Due Date format. Operation cancelled.");
                 return false;
             }
 
-            p.setString(3, equipSerial);
-            p.setString(4, droneSerial);
+            p.setString(4, equipSerial);
+            p.setString(5, droneSerial);
+            p.setString(7, dailyCost);
+            p.setString(8, fees);
 
             // Execute and return result
             int rows = p.executeUpdate();
