@@ -12,39 +12,42 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-
-
-
-
 public class DatabaseControl {
-    private static Connection conn =  null;
-//attempt to connect to the database. true if connedted, false if not and print error message
+    private static Connection conn = null;
+
+    // attempt to connect to the database. true if connedted, false if not and print
+    // error message
     public static boolean connect(String url, String user, String pass) {
         try {
-            if (user == null || user.isEmpty()) conn = DriverManager.getConnection(url);
-            else conn = DriverManager.getConnection(url, user, pass);
+            if (user == null || user.isEmpty())
+                conn = DriverManager.getConnection(url);
+            else
+                conn = DriverManager.getConnection(url, user, pass);
             return true;
         } catch (SQLException e) {
-            System.out.println("Error connecting to the database: "  + e.getMessage());
+            System.out.println("Error connecting to the database: " + e.getMessage());
             conn = null;
             return false;
         }
     }
 
-    //get the column names for a table in the database
+    // get the column names for a table in the database
     public static String[] getColumnNames(String tableName) {
-        if (conn == null) return new String[0];
-        
+        if (conn == null)
+            return new String[0];
+
         List<String> columns = new ArrayList<>();
         try {
             DatabaseMetaData meta = conn.getMetaData();
-            // The arguments are: Catalog, SchemaPattern, TableNamePattern, ColumnNamePattern
-            // We pass the tableName. Note: SQLite sometimes ignores case, but exact match is safer.
+            // The arguments are: Catalog, SchemaPattern, TableNamePattern,
+            // ColumnNamePattern
+            // We pass the tableName. Note: SQLite sometimes ignores case, but exact match
+            // is safer.
             ResultSet rs = meta.getColumns(null, null, tableName, null);
-            
+
             while (rs.next()) {
                 String colName = rs.getString("COLUMN_NAME");
-                // Optional: Skip "ID" columns if you want to auto-generate them, 
+                // Optional: Skip "ID" columns if you want to auto-generate them,
                 // but for now let's keep everything.
                 columns.add(colName);
             }
@@ -54,10 +57,11 @@ public class DatabaseControl {
         return columns.toArray(new String[0]);
     }
 
-    //get the required columns for a table in the database
+    // get the required columns for a table in the database
     public static Set<String> getRequiredColumns(String tableName) {
         Set<String> required = new HashSet<>();
-        if (conn == null) return required;
+        if (conn == null)
+            return required;
 
         try {
             DatabaseMetaData meta = conn.getMetaData();
@@ -78,7 +82,8 @@ public class DatabaseControl {
         return required;
     }
 
-    // Check whether a given value already exists in the primary key column of a table
+    // Check whether a given value already exists in the primary key column of a
+    // table
     public static boolean primaryKeyValueExists(String tableName, String pkColumn, String value) {
         if (conn == null) {
             System.out.println("Database not connected.");
@@ -89,7 +94,7 @@ public class DatabaseControl {
         try (PreparedStatement p = conn.prepareStatement(sql)) {
             p.setString(1, value);
             try (ResultSet rs = p.executeQuery()) {
-                return true;
+                return rs.next();
             }
         } catch (SQLException e) {
             System.out.println("Error checking primary key existence: " + e.getMessage());
@@ -97,47 +102,47 @@ public class DatabaseControl {
         }
     }
 
-
     public static Map<String, String> printRecord(String tableName,
-                                    String id,
-                                    Map<String, String> record,
-                                    String[] fields) {
-        if (conn == null) return record;
-        
+            String id,
+            Map<String, String> record,
+            String[] fields) {
+        if (conn == null)
+            return record;
+
         System.out.println("\nID: " + id);
-        
+
         // First, try to load the record from database if it's empty
-        //if (record.isEmpty()) {
-            String pkColumnName = getPrimaryKeyColumn(tableName);
-            String sql = "SELECT * FROM " + tableName + " WHERE " + pkColumnName + " = ? LIMIT 1";
-            
-            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-                pstmt.setString(1, id);
-                try (ResultSet rs = pstmt.executeQuery()) {
-                    if (rs.next()) {
-                        // Populate the record map from the result set
-                        for (String field : fields) {
-                            String value = rs.getString(field);
-                            if (value != null) {
-                                record.put(field, value);
-                            }
+        // if (record.isEmpty()) {
+        String pkColumnName = getPrimaryKeyColumn(tableName);
+        String sql = "SELECT * FROM " + tableName + " WHERE " + pkColumnName + " = ? LIMIT 1";
+
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, id);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    // Populate the record map from the result set
+                    for (String field : fields) {
+                        String value = rs.getString(field);
+                        if (value != null) {
+                            record.put(field, value);
                         }
                     }
                 }
-            } catch (SQLException e) {
-                System.out.println("Error loading record from database: " + e.getMessage());
             }
-        //}
-        
+        } catch (SQLException e) {
+            System.out.println("Error loading record from database: " + e.getMessage());
+        }
+        // }
+
         // Print the record
         for (String field : fields) {
             String value = record.get(field);
             System.out.println("  " + field + ": " + (value == null || value.isEmpty() ? "(not set)" : value));
         }
-        
+
         return record;
     }
-    
+
     // Helper to get the primary key column name for a given table
     private static String getPrimaryKeyColumn(String tableName) {
         return switch (tableName) {
@@ -151,12 +156,10 @@ public class DatabaseControl {
         };
     }
 
-
-
-    //insert into a database. Retruns true if data was inserted into the database,
-    //returns false if nothing was inserted, or the database is not connected
+    // insert into a database. Retruns true if data was inserted into the database,
+    // returns false if nothing was inserted, or the database is not connected
     public static boolean insertStuff(String[] fields, String tableName, Map<String, String> record) {
-        //makes sure db is connected
+        // makes sure db is connected
         if (conn == null) {
             System.out.println("Database not connected.");
             return false;
@@ -169,22 +172,23 @@ public class DatabaseControl {
         }
         values = values + ")";
 
-        //create the insert statement
+        // create the insert statement
         String ins = "INSERT INTO " + tableName + " VALUES" + values;
         boolean anyInserted = false;
 
-        //runs the prepared statement
+        // runs the prepared statement
         try (PreparedStatement pstmt = conn.prepareStatement(ins)) {
-            
-            //sets the values for the prepared statement
+
+            // sets the values for the prepared statement
             for (int i = 0; i < fields.length; i++) {
-                pstmt.setString(i+1, record.get(fields[i]));
+                pstmt.setString(i + 1, record.get(fields[i]));
             }
 
-                //execute the insert
+            // execute the insert
             int rowsInserted = pstmt.executeUpdate();
 
-            //check if any rows were inserted so user can be notified that it was added to database
+            // check if any rows were inserted so user can be notified that it was added to
+            // database
             if (rowsInserted > 0) {
                 anyInserted = true;
             }
@@ -192,16 +196,19 @@ public class DatabaseControl {
         } catch (SQLException ex) {
             System.out.println("Error with inserting record: " + ex.getMessage());
         }
-    
-        return anyInserted;         
+
+        return anyInserted;
     }
 
     // deleting the record from the database
-    //uses prepared statements to prevent sql injection (make sure to write this for the analysis)
+    // uses prepared statements to prevent sql injection (make sure to write this
+    // for the analysis)
     public static boolean deleteRecord(String entity, String id) {
-        if (conn == null) return false;
+        if (conn == null)
+            return false;
         String del = "DELETE FROM records WHERE entity = ? AND id = ?";
-        try (PreparedStatement d = conn.prepareStatement(del)) {  d.setString(1, entity);
+        try (PreparedStatement d = conn.prepareStatement(del)) {
+            d.setString(1, entity);
             d.setString(2, id);
             d.executeUpdate();
             return true;
@@ -210,13 +217,16 @@ public class DatabaseControl {
         }
     }
 
-    //insert for the delivery things, can someone check if delivery date should be an int instead
-    public static boolean insertDelivery(String customerId, String equipmentId, String deliveryDate, String deliveryWindow, String droneId) {
-        if (conn == null) return false;
+    // insert for the delivery things, can someone check if delivery date should be
+    // an int instead
+    public static boolean insertDelivery(String customerId, String equipmentId, String deliveryDate,
+            String deliveryWindow, String droneId) {
+        if (conn == null)
+            return false;
         String ins = "INSERT INTO deliveries(customer_id,equipment_id,delivery_date,delivery_window,drone_id,status) VALUES(?,?,?,?,?,?)";
         try (PreparedStatement p = conn.prepareStatement(ins)) {
             p.setString(1, customerId);
-            p.setString(2, equipmentId); 
+            p.setString(2, equipmentId);
             p.setString(3, deliveryDate);
             p.setString(4, deliveryWindow);
             p.setString(5, droneId);
@@ -224,19 +234,20 @@ public class DatabaseControl {
             p.executeUpdate();
             return true;
         } catch (SQLException e) {
-             return false; 
-            
-            }
+            return false;
+
+        }
     }
 
     // inserts for transactional delivery stuff
-    public static boolean insertDeliveryTransactional(String customerId, String equipmentId, String deliveryDate, String deliveryWindow, String droneId, String status) {
-        if (conn == null) return false;
+    public static boolean insertDeliveryTransactional(String customerId, String equipmentId, String deliveryDate,
+            String deliveryWindow, String droneId, String status) {
+        if (conn == null)
+            return false;
         String ins = "INSERT INTO deliveries(customer_id,equipment_id,delivery_date,delivery_window,drone_id,status) VALUES(?,?,?,?,?,?)";
         String delField = "DELETE FROM records WHERE entity = ? AND id = ? AND field = ?";
-        String  insField = "INSERT INTO records(entity,id,field,value) VALUES(?,?,?,?)"; 
+        String insField = "INSERT INTO records(entity,id,field,value) VALUES(?,?,?,?)";
         boolean oldAuto = true;
-
 
         try {
             oldAuto = conn.getAutoCommit();
@@ -252,11 +263,12 @@ public class DatabaseControl {
             }
             try (PreparedStatement d = conn.prepareStatement(delField)) {
                 d.setString(1, "Equipment");
-                d.setString(2, equipmentId); 
+                d.setString(2, equipmentId);
                 d.setString(3, "Status");
                 d.executeUpdate();
             }
-            try (PreparedStatement i = conn.prepareStatement(insField)) {  i.setString(1,  "Equipment");
+            try (PreparedStatement i = conn.prepareStatement(insField)) {
+                i.setString(1, "Equipment");
                 i.setString(2, equipmentId);
                 i.setString(3, "Status");
                 i.setString(4, status);
@@ -265,61 +277,93 @@ public class DatabaseControl {
             conn.commit();
             return true;
 
- 
         } catch (SQLException e) {
-            try { conn.rollback(); } catch (SQLException ignored) {}
+            try {
+                conn.rollback();
+            } catch (SQLException ignored) {
+            }
             return false;
 
-
         } finally {
-            try { conn.setAutoCommit(oldAuto); } catch (SQLException ignored) {}
+            try {
+                conn.setAutoCommit(oldAuto);
+            } catch (SQLException ignored) {
+            }
         }
     }
 
-    // map id, checking 
+    // map id, checking
     public static Map<String, Map<String, String>> loadAllRecords(String entity) {
         Map<String, Map<String, String>> result = new java.util.HashMap<>();
-     
-     
-        if (conn == null) return result;
+
+        if (conn == null)
+            return result;
         String sel = "SELECT id, field, value FROM records WHERE entity = ? ORDER BY id";
         try (PreparedStatement s = conn.prepareStatement(sel)) {
             s.setString(1, entity);
             try (ResultSet rs = s.executeQuery()) {
                 while (rs.next()) {
-                  
+
                     String id = rs.getString(1);
                     String field = rs.getString(2);
                     String value = rs.getString(3);
                     result.computeIfAbsent(id, k -> new java.util.HashMap<>()).put(field, value);
                 }
             }
-        } catch (SQLException ignored) {}
+        } catch (SQLException ignored) {
+        }
         return result;
     }
 
-    public static boolean updateRecordField(String entity, String id, String field, String value) {
-        if (conn == null) return false;
+    public static void updateField(String tableName, String pkLabel, String id, String fieldName, String newValue) {
+        if (conn == null)
+            return;
 
-        String del = "DELETE FROM records WHERE entity = ? AND id = ? AND field = ?";
-        String ins = "INSERT INTO records(entity,id,field,value) VALUES(?,?,?,?)";
-        try (PreparedStatement d = conn.prepareStatement(del)) {
-            d.setString(1, entity);
-            d.setString(2,  id); 
-            d.setString(3, field);
-            d.executeUpdate(); 
-        } catch (SQLException ignored) {}
-        try (PreparedStatement i = conn.prepareStatement(ins)) {
-            i.setString(1, entity);
-            i.setString(2, id);
-            i.setString(3, field);
-            i.setString(4,  value);
-            i.executeUpdate();
-            return true;
+        // Construct SQL: UPDATE tableName SET columnName = ? WHERE idColumn = ?
+        String sql = "UPDATE " + tableName + " SET " + fieldName + " = ? WHERE " + pkLabel + " = ?";
 
-        
+        try (PreparedStatement p = conn.prepareStatement(sql)) {
+            if (newValue == null || newValue.isEmpty()) {
+                p.setNull(1, java.sql.Types.VARCHAR); // Sets the database field to NULL
+            } else {
+                p.setString(1, newValue);
+            }
+            p.setString(2, id); // The ID to identify which row to update
+
+            int rowsAffected = p.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("Database updated successfully.");
+            } else {
+                System.out.println("Update failed: ID not found in database.");
+            }
         } catch (SQLException e) {
-            return false;
+            System.out.println("Error updating record: " + e.getMessage());
         }
     }
+
+    // public static boolean updateRecordField(String entity, String id, String field, String value) {
+    //     if (conn == null)
+    //         return false;
+
+    //     String del = "DELETE FROM records WHERE entity = ? AND id = ? AND field = ?";
+    //     String ins = "INSERT INTO records(entity,id,field,value) VALUES(?,?,?,?)";
+    //     try (PreparedStatement d = conn.prepareStatement(del)) {
+    //         d.setString(1, entity);
+    //         d.setString(2, id);
+    //         d.setString(3, field);
+    //         d.executeUpdate();
+    //     } catch (SQLException ignored) {
+    //     }
+    //     try (PreparedStatement i = conn.prepareStatement(ins)) {
+    //         i.setString(1, entity);
+    //         i.setString(2, id);
+    //         i.setString(3, field);
+    //         i.setString(4, value);
+    //         i.executeUpdate();
+    //         return true;
+
+    //     } catch (SQLException e) {
+    //         return false;
+    //     }
+    // }
 }
