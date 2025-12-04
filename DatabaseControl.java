@@ -257,7 +257,7 @@ public class DatabaseControl {
             return false;
         }
 
-        String sql = "INSERT INTO Rentals  VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO Rentals  VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)";
 
         try (PreparedStatement p = conn.prepareStatement(sql)) {
             p.setString(2, userId);
@@ -271,21 +271,22 @@ public class DatabaseControl {
             System.out.println("rental number is: " + rentalNumber);
             int rentalNum = Integer.parseInt(rentalNumber.substring(1)) + 1;
             rentalNumber = "R0" + rentalNum;
+            System.out.println("new rental number is: " + rentalNumber);
             p.setString(1, rentalNumber);
 
             try {
                // p.setDate(2, java.sql.Date.valueOf(dueDate));
                 p.setString(3, dueDate);
-                p.setString(6, checkoutDate);
+                p.setString(5, checkoutDate);
             } catch (IllegalArgumentException e) {
                 System.out.println("Invalid Due Date format. Operation cancelled.");
                 return false;
             }
 
-            p.setString(4, equipSerial);
-            p.setString(5, droneSerial);
-            p.setString(7, dailyCost);
-            p.setString(8, fees);
+            p.setString(7, equipSerial);
+            p.setString(8, droneSerial);
+            p.setString(4, dailyCost);
+            p.setString(6, fees);
 
             // Execute and return result
             int rows = p.executeUpdate();
@@ -384,10 +385,10 @@ public class DatabaseControl {
 
         if (conn == null)
             return result;
-        String sel = "SELECT id, field, value FROM records WHERE entity = ? ORDER BY id";
+        String sel = "SELECT * FROM " + entity;
         try (PreparedStatement s = conn.prepareStatement(sel)) {
-            s.setString(1, entity);
-            try (ResultSet rs = s.executeQuery()) {
+            System.out.println("test");
+                try (ResultSet rs = s.executeQuery()) {
                 while (rs.next()) {
 
                     String id = rs.getString(1);
