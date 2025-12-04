@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 
+import javax.xml.crypto.Data;
+
 public class InfoSystem {
     private static Scanner sc = new Scanner(System.in);
 
@@ -358,13 +360,12 @@ public class InfoSystem {
     private static void listRecords(String entityName,
             Map<String, Map<String, String>> records,
             String[] fields) {
+        records = DatabaseControl.loadAllRecords(entityName);
         if (records.isEmpty()) {
             System.out.println("No " + entityName.toLowerCase() + " records available.");
             return;
         }
-        int numAtt = DatabaseControl.numberAttributes(entityName);
-
-        //this doesn't work? only iterates over values inserted via java program in that instance
+        
         for (Map.Entry<String, Map<String, String>> entry : records.entrySet()) {
             DatabaseControl.printRecord(entityName, entry.getKey(), entry.getValue(), fields);
     } 
@@ -451,67 +452,45 @@ public class InfoSystem {
             System.out.println("Rental failed. Please check the inputs and try again.");
         }
     }
-    //Under developed, just interface -------------
+    //Changes Returned field in Rentals from 0 to 1
     private static void returnEquipment() {
         System.out.println("\n--- Return Equipment ---");
-        String userId = getNonEmptyLine("Enter User ID (Required): ");
-        String equipSerial = getNonEmptyLine("Enter Equipment Serial Number (Required): ");
-        String date_return = getNonEmptyLine("Enter Return Date (YYYY-MM-DD) (Required): ");
+        String rentalId = getNonEmptyLine("Enter Rental Number (Required): ");
 
-        System.out.println("\nReturn recorded for customer " + userId
-                + " and equipment " + equipSerial + ".");
-        System.out.println("Return date: " + date_return);
+        DatabaseControl.updateField("Rentals", "RentalNumber", rentalId, "ReturnStatus", "1");
+        
+        System.out.println("\nReturn recorded for Rental ID: " + rentalId);
         System.out.println("Equipment returned.");
     }
-    //Under developed, just interface
+
+    //Allows user to change checkout date and assigned drone to order
     private static void scheduleDelivery() {
         System.out.println("\nSchedule Equipment Delivery");
-        String customerId = getNonEmptyLine("Enter customer ID: ");
-        String equipmentId = getNonEmptyLine("Enter equipment ID: ");
-        String deliveryDate = getNonEmptyLine("Enter delivery date (YYYY-MM-DD): ");
-        String deliveryWindow = getNonEmptyLine("Enter delivery time window: ");
-        String droneId = getNonEmptyLine("Enter assigned drone ID: ");
+        String RentalNumber = getNonEmptyLine("Enter Rental Number: ");
+        String deliveryDate = getNonEmptyLine("Enter new delivery date (YYYY-MM-DD): ");
+        String droneId = getNonEmptyLine("Enter new drone ID: ");
 
-        System.out.println("\nDelivery scheduled and saved for customer " + customerId + " and equipment "
-                + equipmentId + ".");
+        System.out.println("\nDelivery scheduled and saved.");
         System.out.println("Delivery date: " + deliveryDate);
-        System.out.println("Delivery window: " + deliveryWindow);
         System.out.println("Assigned drone: " + droneId);
 
-        // boolean ok = DatabaseControl.insertDeliveryTransactional(customerId,
-        // equipmentId, deliveryDate, deliveryWindow,
-        // droneId, "Scheduled");
-        // if (ok) {
-        // // update equipment status in memory
-        // Map<String, String> eq = equipment.computeIfAbsent(equipmentId, k -> new
-        // HashMap<>());
-        // eq.put("Status", "Out for delivery");
-        // System.out.println("\nDelivery scheduled and saved for customer " +
-        // customerId + " and equipment "
-        // + equipmentId + ".");
-        // System.out.println("Delivery date: " + deliveryDate);
-        // System.out.println("Delivery window: " + deliveryWindow);
-        // System.out.println("Assigned drone: " + droneId);
-        // } else {
-        // System.out.println("Failed to schedule delivery (DB not connected or error).
-        // Delivery not saved.");
-        // }
+        DatabaseControl.updateField("Rentals", "RentalNumber", RentalNumber, "RentalCheckOuts", deliveryDate);
+        DatabaseControl.updateField("Rentals", "RentalNumber", RentalNumber, "DroneSerialNumber", droneId);
     }
-    //Under developed, just interface
+
+    //Allows user to change checkout date and assigned drone to order
     private static void schedulePickup() {
         System.out.println("\nSchedule Equipment Pickup");
-        String customerId = getNonEmptyLine("Enter customer ID: ");
-        String equipmentId = getNonEmptyLine("Enter equipment ID: ");
-        String pickupDate = getNonEmptyLine("Enter pickup date (YYYY-MM-DD): ");
-        String pickupWindow = getNonEmptyLine("Enter pickup time window: ");
-        String droneId = getNonEmptyLine("Enter assigned drone ID: ");
+        String RentalNumber = getNonEmptyLine("Enter Rental Number: ");
+        String pickupDate = getNonEmptyLine("Enter new Pickup date (YYYY-MM-DD): ");
+        String droneId = getNonEmptyLine("Enter new drone ID: ");
 
-        System.out.println("\nPickup scheduled for customer " + customerId
-                + " and equipment " + equipmentId + ".");
+        System.out.println("\nPickup scheduled and saved.");
         System.out.println("Pickup date: " + pickupDate);
-        System.out.println("Pickup window: " + pickupWindow);
         System.out.println("Assigned drone: " + droneId);
-        System.out.println("Equipment pickup scheduled.");
+
+        DatabaseControl.updateField("Rentals", "RentalNumber", RentalNumber, "RentalCheckOuts", pickupDate);
+        DatabaseControl.updateField("Rentals", "RentalNumber", RentalNumber, "DroneSerialNumber", droneId);
     }
 //------------------
     private static void usefulReportsMenu() {
