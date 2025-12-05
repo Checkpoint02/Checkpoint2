@@ -431,8 +431,15 @@ public class InfoSystem {
         String dailyCost = sc.nextLine().trim();
         System.out.print("Enter Fees (e.g., 5.00) (Press Enter to skip): ");
         String fees = sc.nextLine().trim();
+        System.out.print("Enter Return Date (YYYY-MM-DD) (Press Enter to skip): ");
+        String returnDate = sc.nextLine().trim();
+        System.out.print("Enter Delivery Date (YYYY-MM-DD) (Press Enter to skip): ");
+        String deliveryDate = sc.nextLine().trim();
+        System.out.print("Enter Pickup Date (YYYY-MM-DD) (Press Enter to skip): ");
+        String pickupDate = sc.nextLine().trim();
+
         boolean success = DatabaseControl.insertRental(userId, due, equipSerial, droneSerial, checkout, dailyCost,
-                fees);
+                fees, returnDate, deliveryDate, pickupDate);
 
         if (success) {
             System.out.println("\n*** Rental Created Successfully ***");
@@ -456,10 +463,12 @@ public class InfoSystem {
     private static void returnEquipment() {
         System.out.println("\n--- Return Equipment ---");
         String rentalId = getNonEmptyLine("Enter Rental Number (Required): ");
+        String returnDate = getNonEmptyLine("Enter Return Date (YYYY-MM-DD) (Required): ");
 
         DatabaseControl.updateField("Rentals", "RentalNumber", rentalId, "ReturnStatus", "1");
-        
-        System.out.println("\nReturn recorded for Rental ID: " + rentalId);
+        DatabaseControl.updateField("Rentals", "RentalNumber", rentalId, "RentalReturns", returnDate);
+
+        System.out.println("\nReturn recorded for Rental ID: " + rentalId + " on " + returnDate);
         System.out.println("Equipment returned.");
     }
 
@@ -490,7 +499,7 @@ public class InfoSystem {
         System.out.println("Pickup date: " + pickupDate);
         System.out.println("Assigned drone: " + droneId);
 
-        DatabaseControl.updateField("Rentals", "RentalNumber", RentalNumber, "RentalCheckOuts", pickupDate);
+        DatabaseControl.updateField("Rentals", "RentalNumber", RentalNumber, "RentalPickUp", pickupDate);
         DatabaseControl.updateField("Rentals", "RentalNumber", RentalNumber, "DroneSerialNumber", droneId);
         DatabaseControl.printAddress(RentalNumber, true);
     }
