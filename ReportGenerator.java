@@ -64,7 +64,7 @@ public class ReportGenerator {
                      "FROM Equipment " +
                      "WHERE Type = ? AND Year <= ?";
 
-        System.out.println("\n--- Equipment Report (" + type + " after " + maxYear + ") ---");
+        System.out.println("\n--- Equipment Report (" + type + " before " + maxYear + ") ---");
         System.out.printf("| %-15s | %-30s | %-6s |%n", "Type", "Description", "Year");
         System.out.println("|-----------------|--------------------------------|--------|");
 
@@ -85,7 +85,7 @@ public class ReportGenerator {
                 }
                 
                 if (!equip) {
-                    System.out.printf("| No %-12s equipment found after %-4d |%n", type, maxYear);
+                    System.out.printf("| No %-12s equipment found before %-4d |%n", type, maxYear);
                 }
             }
         } catch (SQLException e) {

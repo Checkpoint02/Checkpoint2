@@ -37,17 +37,17 @@ public class InfoSystem {
         System.out.println("Attempting automatic DB connect to: " + autoUrl);
         if (DatabaseControl.connect(autoUrl, null, null)) {
             System.out.println("Auto-connected to database.");
-            /*
-             * warehouses.clear();
-             * warehouses.putAll(DatabaseControl.loadAllRecords("Warehouse"));
-             * drones.clear(); drones.putAll(DatabaseControl.loadAllRecords("Drone"));
-             * equipment.clear();
-             * equipment.putAll(DatabaseControl.loadAllRecords("Equipment"));
-             * customers.clear();
-             * customers.putAll(DatabaseControl.loadAllRecords("Customer"));
-             * purchaseOrders.clear();
-             * purchaseOrders.putAll(DatabaseControl.loadAllRecords("Purchase Order"));
-             * ratings.clear(); ratings.putAll(DatabaseControl.loadAllRecords("Rating"));
+            /* 
+              warehouses.clear();
+              warehouses.putAll(DatabaseControl.loadAllRecords("Warehouse"));
+              drones.clear(); drones.putAll(DatabaseControl.loadAllRecords("Drone"));
+              equipment.clear();
+              equipment.putAll(DatabaseControl.loadAllRecords("Equipment"));
+              customers.clear();
+              customers.putAll(DatabaseControl.loadAllRecords("Customer"));
+              purchaseOrders.clear();
+              purchaseOrders.putAll(DatabaseControl.loadAllRecords("Purchase Order"));
+              ratings.clear(); ratings.putAll(DatabaseControl.loadAllRecords("Rating"));
              */
 
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -144,7 +144,7 @@ public class InfoSystem {
             System.out.println("2. Edit existing record");
             System.out.println("3. Delete record");
             System.out.println("4. Search records");
-            System.out.println("5. List all records");
+            //System.out.println("5. List all records");
             System.out.println("0. Back to Main Menu");
             System.out.print("Choice: ");
             int choice = getInt();
@@ -153,7 +153,7 @@ public class InfoSystem {
                 case 2 -> editRecord(entityName, idLabel, records, fields, entityName);
                 case 3 -> deleteRecord(entityName, idLabel, records, entityName);
                 case 4 -> searchRecords(idLabel, entityName, fields);
-                case 5 -> listRecords(entityName, records, fields);
+                //case 5 -> listRecords(entityName, records, fields);
                 case 0 -> {
                     return;
                 }
@@ -232,7 +232,6 @@ public class InfoSystem {
         }
     }
 
-    /* TODO new implementation */
     private static void editRecord(String entityName,
             String idLabel,
             Map<String, Map<String, String>> records,
@@ -314,50 +313,9 @@ public class InfoSystem {
             System.out.println("No record found with that ID: " + id);
         }
     }
-    /* TODO new implementation */
-    // private static void searchRecords(String entityName,
-    // String idLabel,
-    // Map<String, Map<String, String>> records,
-    // String tableName) {
-    // String id = getNonEmptyLine("Enter " + idLabel + " to delete: ");
-    // boolean dbsearch = DatabaseControl.searchstuff(tableName, idLabel, id);
 
-    // if (!dbsearch) {
-    // System.out.println("No " + entityName.toLowerCase() + " records.");
-    // return;
-    // }
-    // for (Map.Entry<String, Map<String, String>> entry : records.entrySet()) {
-    // DatabaseControl.printRecord(entityName, entry.getKey(), entry.getValue(),
-    // fields);
-    // }
-    // }
 
-    // if (records.isEmpty()) {
-    // System.out.println("No " + entityName.toLowerCase() + " records available.");
-    // return;
-    // }
-    // System.out.print("Enter search term (matches ID or field values): ");
-    // String term = sc.nextLine().trim();
-    // if (term.isEmpty()) {
-    // System.out.println("Search term cannot be empty.");
-    // return;
-    // }
-    // boolean found = false;
-    // for (Map.Entry<String, Map<String, String>> entry : records.entrySet()) {
-    // if (recordMatches(entry.getKey(), entry.getValue(), fields, term)) {
-    // DatabaseControl.printRecord(entityName, entry.getKey(), entry.getValue(),
-    // fields);
-    // found = true;
-    // }
-    // }
-    // if (!found) {
-    // System.out.println("No matching " + entityName.toLowerCase() + " records
-    // found.");
-    // }
-    // }
-
-    /* TODO new implementation */
-    private static void listRecords(String entityName,
+    /*private static void listRecords(String entityName,
             Map<String, Map<String, String>> records,
             String[] fields) {
         records = DatabaseControl.loadAllRecords(entityName);
@@ -369,25 +327,7 @@ public class InfoSystem {
         for (Map.Entry<String, Map<String, String>> entry : records.entrySet()) {
             DatabaseControl.printRecord(entityName, entry.getKey(), entry.getValue(), fields);
     } 
-    }
-
-    /* TODO new implementation */
-    // private static boolean recordMatches(String id,
-    // Map<String, String> record,
-    // String[] fields,
-    // String term) {
-    // String lowerTerm = term.toLowerCase();
-    // if (id.toLowerCase().contains(lowerTerm)) {
-    // return true;
-    // }
-    // for (String field : fields) {
-    // String value = record.get(field);
-    // if (value != null && value.toLowerCase().contains(lowerTerm)) {
-    // return true;
-    // }
-    // }
-    // return false;
-    // }
+    }*/
 
     // Warehouse Menu
     private static void warehouseMenu() {
