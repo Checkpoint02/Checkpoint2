@@ -251,13 +251,13 @@ public class DatabaseControl {
 
     public static boolean insertRental(String userId, String dueDate, String equipSerial,
             String droneSerial, String checkoutDate,
-            String dailyCost, String fees) {
+            String dailyCost, String fees, String returnDate, String deliveryDate, String pickupDate) {
         if (conn == null) {
             System.out.println("Database not connected.");
             return false;
         }
 
-        String sql = "INSERT INTO Rentals  VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)";
+        String sql = "INSERT INTO Rentals  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)";
 
         try (PreparedStatement p = conn.prepareStatement(sql)) {
             p.setString(2, userId);
@@ -278,6 +278,9 @@ public class DatabaseControl {
                // p.setDate(2, java.sql.Date.valueOf(dueDate));
                 p.setString(3, dueDate);
                 p.setString(5, checkoutDate);
+                p.setString(9, returnDate);
+                p.setString(10, deliveryDate);
+                p.setString(11, pickupDate);
             } catch (IllegalArgumentException e) {
                 System.out.println("Invalid Due Date format. Operation cancelled.");
                 return false;
