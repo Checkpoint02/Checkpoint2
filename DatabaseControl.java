@@ -390,7 +390,6 @@ public class DatabaseControl {
             return result;
         String sel = "SELECT * FROM " + entity;
         try (PreparedStatement s = conn.prepareStatement(sel)) {
-            System.out.println("test");
                 try (ResultSet rs = s.executeQuery()) {
                 while (rs.next()) {
 
@@ -465,31 +464,4 @@ public class DatabaseControl {
         }
     }
     
-
-    // public static boolean updateRecordField(String entity, String id, String
-    // field, String value) {
-    // if (conn == null)
-    // return false;
-
-    // String del = "DELETE FROM records WHERE entity = ? AND id = ? AND field = ?";
-    // String ins = "INSERT INTO records(entity,id,field,value) VALUES(?,?,?,?)";
-    // try (PreparedStatement d = conn.prepareStatement(del)) {
-    // d.setString(1, entity);
-    // d.setString(2, id);
-    // d.setString(3, field);
-    // d.executeUpdate();
-    // } catch (SQLException ignored) {
-    // }
-    // try (PreparedStatement i = conn.prepareStatement(ins)) {
-    // i.setString(1, entity);
-    // i.setString(2, id);
-    // i.setString(3, field);
-    // i.setString(4, value);
-    // i.executeUpdate();
-    // return true;
-
-    // } catch (SQLException e) {
-    // return false;
-    // }
-    // }
 }
