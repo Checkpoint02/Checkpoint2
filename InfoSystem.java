@@ -454,7 +454,6 @@ public class InfoSystem {
     }
     //Changes Returned field in Rentals from 0 to 1
     private static void returnEquipment() {
-        System.out.println("\n(Still under development...)");
         System.out.println("\n--- Return Equipment ---");
         String rentalId = getNonEmptyLine("Enter Rental Number (Required): ");
 
@@ -466,7 +465,6 @@ public class InfoSystem {
 
     //Allows user to change checkout date and assigned drone to order
     private static void scheduleDelivery() {
-        System.out.println("\n(Still under development...)");
         System.out.println("\nSchedule Equipment Delivery");
         String RentalNumber = getNonEmptyLine("Enter Rental Number: ");
         String deliveryDate = getNonEmptyLine("Enter new delivery date (YYYY-MM-DD): ");
@@ -478,11 +476,11 @@ public class InfoSystem {
 
         DatabaseControl.updateField("Rentals", "RentalNumber", RentalNumber, "RentalCheckOuts", deliveryDate);
         DatabaseControl.updateField("Rentals", "RentalNumber", RentalNumber, "DroneSerialNumber", droneId);
+        DatabaseControl.printAddress(RentalNumber, false);
     }
 
     //Allows user to change checkout date and assigned drone to order
     private static void schedulePickup() {
-        System.out.println("\n(Still under development...)");
         System.out.println("\nSchedule Equipment Pickup");
         String RentalNumber = getNonEmptyLine("Enter Rental Number: ");
         String pickupDate = getNonEmptyLine("Enter new Pickup date (YYYY-MM-DD): ");
@@ -494,6 +492,7 @@ public class InfoSystem {
 
         DatabaseControl.updateField("Rentals", "RentalNumber", RentalNumber, "RentalCheckOuts", pickupDate);
         DatabaseControl.updateField("Rentals", "RentalNumber", RentalNumber, "DroneSerialNumber", droneId);
+        DatabaseControl.printAddress(RentalNumber, true);
     }
 
     // ------------------

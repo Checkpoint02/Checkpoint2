@@ -428,6 +428,41 @@ public class DatabaseControl {
         }
     }
 
+    public static void printAddress(String RentalNumber, boolean pickup){
+        if (conn == null)
+            return;
+        String sql = "SELECT UserID FROM Rentals WHERE RentalNumber = ?";
+        try (PreparedStatement p = conn.prepareStatement(sql)) {
+            p.setString(1, RentalNumber);
+            try (ResultSet rs = p.executeQuery()) {
+                String userID = rs.getString("UserID");
+                if(pickup){
+                    String sqlAddr = "SELECT Address FROM Warehouse WHERE WarehouseID = (SELECT WarehouseID FROM Customer WHERE UserID = ?)";
+                    try(PreparedStatement p2 = conn.prepareStatement(sqlAddr)){
+                        p2.setString(1, userID);
+                        try(ResultSet rs2 = p2.executeQuery()){
+                            String address = rs2.getString("Address");
+                            System.out.println("Pickup Address: " + address);
+                        }
+                    } 
+                }
+                else{
+                    String sqlAddr = "SELECT Address FROM Customer WHERE UserID = ?";
+                    try(PreparedStatement p2 = conn.prepareStatement(sqlAddr)){
+                        p2.setString(1, userID);
+                        try(ResultSet rs2 = p2.executeQuery()){
+                            String address = rs2.getString("Address");
+                            System.out.println("Delivery Address: " + address);
+                        }
+                    } 
+            }
+        } 
+        }catch (SQLException e) {
+            System.out.println("Error retrieving address: " + e.getMessage());
+        }
+    }
+    
+
     // public static boolean updateRecordField(String entity, String id, String
     // field, String value) {
     // if (conn == null)
