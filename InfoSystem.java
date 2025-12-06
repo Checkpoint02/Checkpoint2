@@ -423,7 +423,7 @@ public class InfoSystem {
         System.out.println("Delivery date: " + deliveryDate);
         System.out.println("Assigned drone: " + droneId);
 
-        DatabaseControl.updateField("Rentals", "RentalNumber", RentalNumber, "RentalCheckOuts", deliveryDate);
+        DatabaseControl.updateField("Rentals", "RentalNumber", RentalNumber, "DeliveryDate", deliveryDate);
         DatabaseControl.updateField("Rentals", "RentalNumber", RentalNumber, "DroneSerialNumber", droneId);
         DatabaseControl.printAddress(RentalNumber, false);
     }
