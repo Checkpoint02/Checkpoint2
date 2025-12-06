@@ -265,7 +265,7 @@ public class DatabaseControl {
             //and every time I try to remove it sqlstudio crashes, so I have to get the top 2 and use the second one
             String getRentalNumber = "SELECT RentalNumber FROM Rentals ORDER BY RentalNumber DESC LIMIT 2";
             ResultSet rs = conn.prepareStatement(getRentalNumber).executeQuery();
-            rs.next();
+            //rs.next();
             rs.next();
             String rentalNumber = rs.getString(1);
             System.out.println("rental number is: " + rentalNumber);
